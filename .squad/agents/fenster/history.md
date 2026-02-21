@@ -14,3 +14,6 @@
 - 13 modules: adapter, agents, build, casting, cli, client, config, coordinator, hooks, marketplace, ralph, runtime, sharing, skills, tools
 - CLI is zero-dep scaffolding: cli.js stays thin, runtime is modular
 - Ralph module: work monitor, queue manager, keep-alive — runs continuous loop until board is clear
+
+### 📌 Team update (2026-02-21T21:23Z): CLI command renames are pending — decided by Keaton
+Recommend renaming `squad watch` to `squad triage` (40% better semantic accuracy; aligns with GitHub terminology). Keep `watch` as silent alias for backward compatibility. Do NOT expose `squad ralph` as user-facing CLI; suggest `squad monitor` or `squad loop` instead for the monitoring function. Ralph remains in team identity, not CLI. Confidence: 85% for triage, 90% against ralph.

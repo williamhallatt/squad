@@ -21,7 +21,7 @@
   },
   "dependencies": {},
   "optionalDependencies": {
-    "@github/copilot-sdk": "file:../copilot-sdk/nodejs"
+    "@github/copilot-sdk": "^0.1.25"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
