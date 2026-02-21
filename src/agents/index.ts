@@ -6,8 +6,16 @@
  * Injects dynamic context via session hooks instead of string templates.
  */
 
-// --- M1-8 Charter Compilation ---
-export { compileCharter, type CharterCompileOptions, type ParsedCharter } from './charter-compiler.js';
+// --- M1-8 Charter Compilation + M2-9 Config-driven ---
+export { 
+  compileCharter, 
+  compileCharterFull, 
+  parseCharterMarkdown,
+  type CharterCompileOptions, 
+  type CharterConfigOverrides, 
+  type ParsedCharter,
+  type CompiledCharter,
+} from './charter-compiler.js';
 
 // --- M1-9 Model Selection ---
 export { 

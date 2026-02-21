@@ -1,8 +1,9 @@
 /**
- * Charter Compilation (M1-8)
+ * Charter Compilation (M1-8 + M2-9)
  * 
  * Transforms agent charter.md files into typed SDK CustomAgentConfig.
  * Parses charter sections and builds the complete agent prompt with team context.
+ * Supports config-driven overrides that merge with charter content.
  */
 
 import { SquadCustomAgentConfig } from '../adapter/types.js';
@@ -16,12 +17,35 @@ export interface CharterCompileOptions {
   agentName: string;
   /** Full path to the agent's charter.md file */
   charterPath: string;
+  /** Raw charter markdown content (if already loaded) */
+  charterContent?: string;
   /** Content of team.md (team roster) */
   teamContext?: string;
   /** Routing rules content */
   routingRules?: string;
   /** Relevant decision records */
   decisions?: string;
+  /** Config-driven overrides (config wins on conflict) */
+  configOverrides?: CharterConfigOverrides;
+}
+
+/**
+ * Config-driven overrides that merge with charter content.
+ * Values from config take precedence over charter-parsed values.
+ */
+export interface CharterConfigOverrides {
+  /** Override display name */
+  displayName?: string;
+  /** Override role */
+  role?: string;
+  /** Override or set model */
+  model?: string;
+  /** Override or set tools list */
+  tools?: string[];
+  /** Override or set status */
+  status?: 'active' | 'inactive' | 'retired';
+  /** Extra prompt content appended to charter */
+  extraPrompt?: string;
 }
 
 /**
@@ -48,6 +72,18 @@ export interface ParsedCharter {
 }
 
 /**
+ * Extended result from charter compilation, includes metadata beyond CustomAgentConfig.
+ */
+export interface CompiledCharter extends SquadCustomAgentConfig {
+  /** Resolved model (from config override or charter preference) */
+  resolvedModel?: string;
+  /** Resolved tools list (from config override or charter) */
+  resolvedTools?: string[];
+  /** Parsed charter data */
+  parsed: ParsedCharter;
+}
+
+/**
  * Compile a charter.md file into a CustomAgentConfig.
  * 
  * @param options - Charter compilation options
@@ -55,13 +91,21 @@ export interface ParsedCharter {
  * @throws {ConfigurationError} If charter is missing or malformed
  */
 export function compileCharter(options: CharterCompileOptions): SquadCustomAgentConfig {
-  const { agentName, charterPath, teamContext, routingRules, decisions } = options;
+  return compileCharterFull(options);
+}
+
+/**
+ * Compile a charter with full metadata including resolved model/tools.
+ * 
+ * @param options - Charter compilation options
+ * @returns CompiledCharter with full metadata
+ * @throws {ConfigurationError} If charter is missing or malformed
+ */
+export function compileCharterFull(options: CharterCompileOptions): CompiledCharter {
+  const { agentName, charterPath, charterContent, teamContext, routingRules, decisions, configOverrides } = options;
 
   try {
-    // In a real implementation, this would read from the filesystem
-    // For now, we'll create a placeholder structure that tests can validate
-    
-    const parsed = parseCharterMarkdown('');
+    const parsed = parseCharterMarkdown(charterContent ?? '');
     
     // Build the complete prompt by composing sections
     const promptParts: string[] = [];
@@ -83,17 +127,28 @@ export function compileCharter(options: CharterCompileOptions): SquadCustomAgent
     if (decisions) {
       promptParts.push('\n\n## Relevant Decisions\n\n' + decisions);
     }
+
+    // Append extra prompt from config overrides
+    if (configOverrides?.extraPrompt) {
+      promptParts.push('\n\n' + configOverrides.extraPrompt);
+    }
     
     const prompt = promptParts.join('');
     
-    // Extract display name and description from identity
-    const displayName = parsed.identity.role 
-      ? `${capitalize(agentName)} — ${parsed.identity.role}`
-      : capitalize(agentName);
+    // Config overrides win over charter-parsed values
+    const role = configOverrides?.role || parsed.identity.role;
+    const displayName = configOverrides?.displayName
+      || (role ? `${capitalize(agentName)} — ${role}` : capitalize(agentName));
     
     const description = parsed.identity.expertise?.length
       ? `Expertise: ${parsed.identity.expertise.join(', ')}`
-      : `${parsed.identity.role || 'Agent'}`;
+      : `${role || 'Agent'}`;
+
+    // Resolve model: config override > charter preference
+    const resolvedModel = configOverrides?.model || parsed.modelPreference;
+
+    // Resolve tools: config override > charter-extracted tools
+    const resolvedTools = configOverrides?.tools;
     
     return {
       name: agentName,
@@ -101,8 +156,13 @@ export function compileCharter(options: CharterCompileOptions): SquadCustomAgent
       description,
       prompt,
       infer: true,
+      tools: resolvedTools ?? null,
+      resolvedModel,
+      resolvedTools,
+      parsed,
     };
   } catch (error) {
+    if (error instanceof ConfigurationError) throw error;
     throw new ConfigurationError(
       `Failed to compile charter for agent '${agentName}' at ${charterPath}: ${error instanceof Error ? error.message : String(error)}`,
       {
@@ -122,7 +182,7 @@ export function compileCharter(options: CharterCompileOptions): SquadCustomAgent
  * @param content - Raw charter.md content
  * @returns Parsed charter structure
  */
-function parseCharterMarkdown(content: string): ParsedCharter {
+export function parseCharterMarkdown(content: string): ParsedCharter {
   const result: ParsedCharter = {
     identity: {},
     fullContent: content,
@@ -133,7 +193,7 @@ function parseCharterMarkdown(content: string): ParsedCharter {
   }
   
   // Extract ## Identity section
-  const identityMatch = content.match(/##\s+Identity\s*\n([\s\S]*?)(?=\n##|\n---|\Z)/i);
+  const identityMatch = content.match(/##\s+Identity\s*\n([\s\S]*?)(?=\n##|\n---|$)/i);
   if (identityMatch) {
     const identityContent = identityMatch[1];
     
@@ -157,19 +217,19 @@ function parseCharterMarkdown(content: string): ParsedCharter {
   }
   
   // Extract ## What I Own section
-  const ownershipMatch = content.match(/##\s+What I Own\s*\n([\s\S]*?)(?=\n##|\n---|\Z)/i);
+  const ownershipMatch = content.match(/##\s+What I Own\s*\n([\s\S]*?)(?=\n##|\n---|$)/i);
   if (ownershipMatch) {
     result.ownership = ownershipMatch[1].trim();
   }
   
   // Extract ## Boundaries section
-  const boundariesMatch = content.match(/##\s+Boundaries\s*\n([\s\S]*?)(?=\n##|\n---|\Z)/i);
+  const boundariesMatch = content.match(/##\s+Boundaries\s*\n([\s\S]*?)(?=\n##|\n---|$)/i);
   if (boundariesMatch) {
     result.boundaries = boundariesMatch[1].trim();
   }
   
   // Extract ## Model section
-  const modelMatch = content.match(/##\s+Model\s*\n([\s\S]*?)(?=\n##|\n---|\Z)/i);
+  const modelMatch = content.match(/##\s+Model\s*\n([\s\S]*?)(?=\n##|\n---|$)/i);
   if (modelMatch) {
     const modelContent = modelMatch[1];
     const preferredMatch = modelContent.match(/\*\*Preferred:\*\*\s*(.+)/i);
@@ -179,7 +239,7 @@ function parseCharterMarkdown(content: string): ParsedCharter {
   }
   
   // Extract ## Collaboration section
-  const collaborationMatch = content.match(/##\s+Collaboration\s*\n([\s\S]*?)(?=\n##|\n---|\Z)/i);
+  const collaborationMatch = content.match(/##\s+Collaboration\s*\n([\s\S]*?)(?=\n##|\n---|$)/i);
   if (collaborationMatch) {
     result.collaboration = collaborationMatch[1].trim();
   }
