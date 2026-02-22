@@ -64,3 +64,10 @@ Edie's refactor split src/index.ts into pure barrel (zero side effects) and src/
 
 ### 📌 Team update (2026-02-22T041800Z): Build system migration complete, all 6 config files fixed, zero TypeScript errors — decided by Edie
 Edie fixed root tsconfig (base config + project refs), SDK tsconfig (composite + no JSX), CLI tsconfig (composite + jsx), root package.json (workspace orchestrator), SDK package.json (18 subpath exports), CLI package.json (bin entry + UI deps). Composite builds enable TypeScript project references across packages. All dist artifacts (`.js`, `.d.ts`, `.d.ts.map`) emitted correctly. Build ready for Phase 3 (test import migration when root src/ removal blocks).
+
+### Fix workspace:* → npm-compatible wildcard
+- Previous commit used `workspace:*` for CLI→SDK dependency — this is pnpm/Yarn syntax, not npm
+- npm workspaces reject `workspace:` protocol with `EUNSUPPORTEDPROTOCOL`
+- Changed to `"*"` which achieves the same local resolution under npm workspaces
+- Verified: `npm install` succeeds, `npm run build` compiles both packages cleanly
+- Also verified: prepublishOnly scripts and dynamic VERSION (via createRequire) from previous commit are working correctly

@@ -76,3 +76,11 @@ Hockney added 13 CRLF-specific test cases covering Windows line ending handling.
 
 ### 📌 Team update (2026-02-22T041800Z): SDK/CLI split verified, all 1719 tests passing, test import migration deferred — decided by Hockney
 Build clean + all 1719 tests pass post-SDK/CLI migration. Fenster's import rewriting (6 cross-package imports) verified correct. Test import migration deferred until root `src/` deletion blocks (lazy approach reduces risk). Tests remain on old `../src/` paths for now — migration requires expanding exports maps or vitest alias config, both non-trivial. Exports map gap + CLI no exports + barrel divergence make premature migration risky. Decision merged to decisions.md (hockney-test-import-migration.md).
+
+### Test infrastructure: coverage config + package exports test (2026-02-22)
+- **Coverage:** Installed `@vitest/coverage-v8@^3.2.0`, configured vitest with `v8` provider and `text`, `text-summary`, `html` reporters. Coverage output goes to `./coverage/` (already in `.gitignore`). Include patterns cover `src/**/*.ts` and `packages/*/src/**/*.ts`.
+- **Package exports test:** Created `test/package-exports.test.ts` with 8 tests covering SDK exports map: root (`VERSION`), `/config` (`DEFAULT_CONFIG`), `/resolution` (`resolveSquad`), `/parsers` (`parseTeamMarkdown`), `/types` (type-only, no runtime values), `/agents`, `/skills`, `/tools`.
+- Discovered `types` subpath has zero runtime exports (pure `export type` statements) — test only verifies module resolves.
+- Config subpath exports `DEFAULT_CONFIG`, `AgentRegistry`, `ModelRegistry`, etc. — not `loadSquadConfig` as initially assumed.
+- `npm install` needed `--legacy-peer-deps` flag due to `workspace:*` protocol in squad-cli's package.json (pnpm syntax, not native npm).
+- Build passes cleanly. All 8 package-exports tests pass with coverage reporting.
