@@ -28,3 +28,15 @@
 - Color shifts over time: cyan (<5s) → yellow (<15s) → magenta (15s+) — borrowed from original spinner
 - 16 new tests in `test/repl-ux.test.ts` sections 7 + 8
 - PR #351 on branch `squad/331-thinking-feedback`
+
+### 2026-02-25: Ghost response detection and retry logic (#332)
+- Created `withGhostRetry()` — exported, testable function with callback-based UI integration
+- Detects empty responses (both accumulated deltas and fallback content empty) from `awaitStreamedResponse()`
+- Retries up to 3 times with exponential backoff: 1s, 2s, 4s (configurable via `GhostRetryOptions`)
+- Shows user-facing retry status: "⚠ No response received. Retrying (attempt N/3)..."
+- Shows exhaustion message: "❌ Agent did not respond after 3 attempts. Try again or run `squad doctor`."
+- Logs ghost metadata via `debugLog`: timestamp, attempt number, prompt preview (truncated to 80 chars)
+- Wired into both `dispatchToAgent()` and `dispatchToCoordinator()` via `ghostRetry()` convenience wrapper
+- 14 new tests in `test/ghost-response.test.ts` covering unit + integration + backoff timing
+- Pattern: `withGhostRetry` is pure (no closure deps); `ghostRetry` is the shell-bound wrapper inside `runShell()`
+- PR on branch `squad/332-ghost-response`
