@@ -102,3 +102,17 @@
 - 66/70 tests pass (same 4 pre-existing failures: 2 empty-panel, 2 idle→ready text mismatch)
 - Pattern: `useTerminalWidth()` is the canonical hook for width-responsive Ink components; `getTerminalWidth()` for non-React code
 - PR #360 on branch `squad/336-terminal-adaptivity`
+
+### 2026-02-26: P2 nice-to-haves from Marquez audit (#340)
+- Fixed all 6 P2 items identified in Marquez's UX audit
+- Files changed: `commands.ts`, `AgentPanel.tsx`, `App.tsx`, `MessageStream.tsx`, `ThinkingIndicator.tsx`
+- Key changes:
+  - Removed "you:" prefix from user messages — now shows just `❯` chevron (cleaner, less redundant)
+  - Consistent separator characters: all separators use `-` (was mixed `─` in MessageStream and `┄` in AgentPanel)
+  - Simplified ThinkingIndicator: removed 10-phrase rotation carousel, replaced with static "Thinking..." label (1 timer instead of 3)
+  - `/agents` command uses text status labels `[WORK]` `[STREAM]` `[ERR]` `[IDLE]` instead of emoji circles `🔵🟢🔴⚪`
+  - Status line indentation normalized from 2-space to 1-space indent in AgentPanel
+  - Replaced emoji indicators: `📋` → `▸` (activity feed), `📍` → `Focus:` (banner), `🔌` → removed (SDK message)
+  - `THINKING_PHRASES` export kept as single-element array `['Thinking']` for backward compat
+- 4 pre-existing test failures (2 empty panel, 2 idle→ready text mismatch) — not related
+- PR #364 on branch `squad/340-p2-nice-to-haves`

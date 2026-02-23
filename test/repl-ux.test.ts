@@ -857,7 +857,7 @@ describe('Rich progress indicators', () => {
       })
     );
     const frame = lastFrame()!;
-    expect(frame).not.toContain('▸ ');
+    expect(frame).not.toMatch(/▸ \w+ is /);
   });
 
   it('MessageStream works without agentActivities prop (backward compat)', () => {
@@ -868,7 +868,6 @@ describe('Rich progress indicators', () => {
     );
     const frame = lastFrame()!;
     expect(frame).toContain('hello');
-    // No activity lines present
     expect(frame).not.toMatch(/▸ \w+ is /);
   });
 

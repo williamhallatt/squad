@@ -93,7 +93,7 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
           );
         })}
         <Box marginTop={0}>
-          <Text dimColor>{'┄'.repeat(sepWidth)}</Text>
+          <Text dimColor>{'-'.repeat(sepWidth)}</Text>
         </Box>
       </Box>
     );
@@ -152,18 +152,18 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents, streamingContent
             const displayHint = hint && hint.length > maxHintLen ? hint.slice(0, maxHintLen - 1) + '…' : hint;
             return (
               <Text key={a.name} color={noColor ? undefined : 'yellow'}>
-                {'  '}{getRoleEmoji(a.role)} {a.name} ({statusLabel}{elapsed ? `, ${elapsed}` : ''}){displayHint ? ` — ${displayHint}` : ''}
+                {' '}{getRoleEmoji(a.role)} {a.name} ({statusLabel}{elapsed ? `, ${elapsed}` : ''}){displayHint ? ` — ${displayHint}` : ''}
               </Text>
             );
           })}
         </Box>
       ) : (
-        <Text dimColor>{'  '}{agents.length} agent{agents.length !== 1 ? 's' : ''} ready</Text>
+        <Text dimColor>{' '}{agents.length} agent{agents.length !== 1 ? 's' : ''} ready</Text>
       )}
 
       {/* Separator between panel and message stream */}
       <Box marginTop={0}>
-        <Text dimColor>{'┄'.repeat(sepWidth)}</Text>
+        <Text dimColor>{'-'.repeat(sepWidth)}</Text>
       </Box>
     </Box>
   );

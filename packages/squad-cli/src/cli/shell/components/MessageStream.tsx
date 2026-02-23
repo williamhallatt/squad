@@ -94,11 +94,11 @@ export const MessageStream: React.FC<MessageStreamProps> = ({
 
         return (
           <React.Fragment key={i}>
-            {isNewTurn && <Text dimColor>{'─'.repeat(sepWidth)}</Text>}
+            {isNewTurn && <Text dimColor>{'-'.repeat(sepWidth)}</Text>}
             <Box gap={1}>
               {msg.role === 'user' ? (
                 <>
-                  <Text color={noColor ? undefined : 'cyan'} bold dimColor={isFading}>❯ you:</Text>
+                  <Text color={noColor ? undefined : 'cyan'} bold dimColor={isFading}>❯</Text>
                   <Text color={noColor ? undefined : 'cyan'} wrap="wrap" dimColor={isFading}>{msg.content}</Text>
                 </>
               ) : msg.role === 'system' ? (
@@ -136,7 +136,7 @@ export const MessageStream: React.FC<MessageStreamProps> = ({
       {agentActivities && agentActivities.size > 0 && (
         <Box flexDirection="column">
           {Array.from(agentActivities.entries()).map(([name, activity]) => (
-            <Text key={name} dimColor>📋 {name} is {activity}</Text>
+            <Text key={name} dimColor>▸ {name} is {activity}</Text>
           ))}
         </Box>
       )}

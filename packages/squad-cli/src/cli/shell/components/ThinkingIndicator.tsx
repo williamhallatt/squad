@@ -1,14 +1,13 @@
 /**
- * ThinkingIndicator — engaging feedback during long agent operations.
+ * ThinkingIndicator — clean feedback during agent operations.
  *
- * Two layers:
- *   Layer 1 (Claude-style): rotating thinking phrases with elapsed time
- *   Layer 2 (Copilot-style): activity hints from SDK events (takes priority)
+ * Shows spinner + "Thinking..." (static) + elapsed time.
+ * Activity hints from SDK events override the default label.
  *
  * Owned by Cheritto (TUI Engineer). Design approved by Marquez.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
 import { isNoColor } from '../terminal.js';
 
@@ -18,24 +17,10 @@ export interface ThinkingIndicatorProps {
   activityHint?: string;
 }
 
-/** Rotating thinking phrases — Claude-style. Cycled every 2-3s. */
-export const THINKING_PHRASES = [
-  'Analyzing',
-  'Considering',
-  'Synthesizing',
-  'Reasoning',
-  'Evaluating',
-  'Reflecting',
-  'Exploring',
-  'Connecting',
-  'Pondering',
-  'Formulating',
-];
+/** Thinking label — exported for backward compat with tests. */
+export const THINKING_PHRASES = ['Thinking'];
 
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-
-/** Phrase rotation interval: 2.5 seconds */
-const PHRASE_INTERVAL_MS = 2500;
 
 /** Color cycles through as time passes — feels alive. */
 function indicatorColor(elapsedSec: number): string {
@@ -60,8 +45,6 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
 }) => {
   const noColor = isNoColor();
   const [frame, setFrame] = useState(0);
-  const [phraseIndex, setPhraseIndex] = useState(0);
-  const phraseTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Spinner animation — 80ms per frame (disabled in NO_COLOR)
   useEffect(() => {
@@ -72,23 +55,9 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     return () => clearInterval(timer);
   }, [isThinking, noColor]);
 
-  // Phrase rotation — every 2.5s
+  // Reset frame when thinking starts
   useEffect(() => {
-    if (!isThinking) return;
-    phraseTimerRef.current = setInterval(() => {
-      setPhraseIndex(i => (i + 1) % THINKING_PHRASES.length);
-    }, PHRASE_INTERVAL_MS);
-    return () => {
-      if (phraseTimerRef.current) clearInterval(phraseTimerRef.current);
-    };
-  }, [isThinking]);
-
-  // Reset phrase index when thinking starts
-  useEffect(() => {
-    if (isThinking) {
-      setPhraseIndex(0);
-      setFrame(0);
-    }
+    if (isThinking) setFrame(0);
   }, [isThinking]);
 
   if (!isThinking) return null;
@@ -99,20 +68,10 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
 
   // NO_COLOR: no color props, use text labels
   if (noColor) {
-    if (activityHint) {
-      return (
-        <Box gap={1}>
-          <Text>{spinnerChar}</Text>
-          <Text>⏳ {activityHint}</Text>
-          {elapsedStr ? <Text>({elapsedStr})</Text> : null}
-        </Box>
-      );
-    }
-    const phrase = THINKING_PHRASES[phraseIndex] ?? THINKING_PHRASES[0]!;
     return (
       <Box gap={1}>
         <Text>{spinnerChar}</Text>
-        <Text>⏳ {phrase}...</Text>
+        <Text>{activityHint ?? 'Thinking...'}</Text>
         {elapsedStr ? <Text>({elapsedStr})</Text> : null}
       </Box>
     );
@@ -120,7 +79,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
 
   const color = indicatorColor(elapsedSec);
 
-  // Layer 2: Activity hint takes priority when available (Copilot-style)
+  // Activity hint takes priority when available
   if (activityHint) {
     return (
       <Box gap={1}>
@@ -131,12 +90,11 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({
     );
   }
 
-  // Layer 1: Rotating thinking phrases (Claude-style)
-  const phrase = THINKING_PHRASES[phraseIndex] ?? THINKING_PHRASES[0]!;
+  // Default: static "Thinking..." label
   return (
     <Box gap={1}>
       <Text color={color}>{spinnerChar}</Text>
-      <Text color={color} dimColor italic>{phrase}...</Text>
+      <Text color={color} dimColor italic>Thinking...</Text>
       {elapsedStr ? <Text dimColor>({elapsedStr})</Text> : null}
     </Box>
   );

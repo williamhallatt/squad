@@ -122,7 +122,7 @@ function handleAgents(context: CommandContext): CommandResult {
     return { handled: true, output: 'No team members yet.' };
   }
   const lines = agents.map(a => {
-    const icon = a.status === 'working' ? '🔵' : a.status === 'streaming' ? '🟢' : a.status === 'error' ? '🔴' : '⚪';
+    const icon = a.status === 'working' ? '[WORK]' : a.status === 'streaming' ? '[STREAM]' : a.status === 'error' ? '[ERR]' : '[IDLE]';
     return `  ${icon} ${a.name} (${a.role}) — ${a.status}`;
   });
   return { handled: true, output: `Team Members:\n${lines.join('\n')}` };
