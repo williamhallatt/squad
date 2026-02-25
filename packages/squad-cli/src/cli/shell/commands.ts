@@ -98,64 +98,46 @@ function handleClear(): CommandResult {
 }
 
 function handleHelp(args: string[]): CommandResult {
-  const isFull = args[0] === 'full';
   const width = getTerminalWidth();
 
-  if (isFull) {
-    // Full help output
-    if (width < 80) {
-      // Single-column compact help for narrow terminals
-      return {
-        handled: true,
-        output: [
-          'Commands:',
-          '/status — Check your team',
-          '/history — Recent messages',
-          '/agents — List team members',
-          '/sessions — Past sessions',
-          '/resume <id> — Restore session',
-          '/clear — Clear screen',
-          '/quit — Exit',
-          '',
-          'Talk to your squad:',
-          '  Just type naturally — routes to the right agent.',
-          '  @Agent message — Send directly to one agent.',
-        ].join('\n'),
-      };
-    }
+  if (width < 80) {
+    // Single-column compact help for narrow terminals
     return {
       handled: true,
       output: [
-        'Commands:',
-        "  /status    — Check your team & what's happening",
-        '  /history   — See recent messages',
-        '  /agents    — List all team members',
-        '  /sessions  — List saved sessions',
-        '  /resume    — Restore a past session',
-        '  /clear     — Clear the screen',
-        '  /quit      — Exit',
+        'How it works:',
+        '  Just type what you need — Squad routes your message to the right agent.',
+        '  @AgentName message — send directly to one agent (case-insensitive).',
         '',
-        'Talk to your squad:',
-        '  Just type naturally — the coordinator routes it to the right agent.',
-        '  @AgentName message  — Send directly to one agent.',
+        'Commands:',
+        '/status — Check your team',
+        '/history — Recent messages',
+        '/agents — List team members',
+        '/sessions — Past sessions',
+        '/resume <id> — Restore session',
+        '/version — Show version',
+        '/clear — Clear screen',
+        '/quit — Exit',
       ].join('\n'),
     };
   }
 
-  // Default help — essentials only
   return {
     handled: true,
     output: [
       'How it works:',
       '  Just type what you need — Squad routes your message to the right agent.',
-      '  @AgentName message — send directly to one agent.',
+      '  @AgentName message — send directly to one agent (case-insensitive).',
       '',
       'Commands:',
-      "  /status — Check your team    /history — Recent messages",
-      "  /agents — List team           /sessions — Past sessions",
-      "  /quit — Exit                  /resume <id> — Restore",
-      '',
-      "Type /help full for complete docs.",
+      "  /status    — Check your team & what's happening",
+      '  /history   — See recent messages',
+      '  /agents    — List all team members',
+      '  /sessions  — List saved sessions',
+      '  /resume    — Restore a past session',
+      '  /version   — Show version',
+      '  /clear     — Clear the screen',
+      '  /quit      — Exit',
     ].join('\n'),
   };
 }

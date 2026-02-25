@@ -231,7 +231,7 @@ ${BOLD}DESCRIPTION${RESET}
   committing to public repos or sharing exports.
 
 ${BOLD}OPTIONS${RESET}
-  [directory]    Target directory (default: .ai-team)
+  [directory]    Target directory (default: .squad)
 
 ${BOLD}EXAMPLES${RESET}
   ${DIM}# Scrub current squad${RESET}
@@ -335,55 +335,66 @@ async function main(): Promise<void> {
     console.log(`  squad                  Start interactive shell`);
     console.log(`  squad --global         Use your personal squad\n`);
     console.log(`Usage: squad [command] [options]\n`);
-    console.log(`Commands:`);
-    console.log(`  ${BOLD}init${RESET}       Create .squad/ in this repo`);
-    console.log(`  ${BOLD}hire${RESET}       Create a new squad ${DIM}(alias: init)${RESET}`);
-    console.log(`             --global  Create personal squad directory`);
-    console.log(`             --mode remote <path>`);
-    console.log(`               Link to a remote team root`);
-    console.log(`  ${BOLD}upgrade${RESET}    Update Squad files to latest`);
-    console.log(`             Your .squad/ directory is never touched`);
-    console.log(`             --global          Upgrade personal squad`);
-    console.log(`             --migrate-directory`);
-    console.log(`               Rename .ai-team/ → .squad/`);
-    console.log(`  ${BOLD}status${RESET}     Show which squad is active`);
-    console.log(`  ${BOLD}triage${RESET}     Watch issues and auto-triage to team`);
-    console.log(`             [--interval <minutes>] (default: 10)`);
-    console.log(`  ${BOLD}loop${RESET}       Monitor work ${DIM}(alias: triage)${RESET}`);
-    console.log(`  ${BOLD}shell${RESET}      Launch interactive shell`);
-    console.log(`  ${BOLD}run${RESET}        Send a message to a specific agent`);
-    console.log(`             <agent> [prompt]`);
-    console.log(`  ${BOLD}copilot${RESET}    Add/remove GitHub Copilot agent`);
-    console.log(`             [--off] [--auto-assign]`);
-    console.log(`  ${BOLD}plugin${RESET}     Manage plugins`);
-    console.log(`             marketplace add|remove|list|browse`);
-    console.log(`  ${BOLD}export${RESET}     Save squad to JSON`);
-    console.log(`             [--out <path>] (default: squad-export.json)`);
-    console.log(`  ${BOLD}import${RESET}     Load squad from JSON`);
-    console.log(`             <file> [--force]`);
-    console.log(`  ${BOLD}scrub-emails${RESET}`);
-    console.log(`             Remove email addresses from squad state`);
-    console.log(`             [directory] (default: .squad/)`);
-    console.log(`  ${BOLD}doctor${RESET}     Check your setup`);
-    console.log(`  ${BOLD}heartbeat${RESET}  Health check ${DIM}(alias: doctor)${RESET}`);
-    console.log(`  ${BOLD}link${RESET}       Connect to a remote team`);
-    console.log(`             <team-repo-path>`);
-    console.log(`  ${BOLD}upstream${RESET}   Manage upstream Squad sources`);
-    console.log(`             add|remove|list|sync`);
-    console.log(`  ${BOLD}aspire${RESET}     Open Aspire dashboard`);
-    console.log(`             --docker  Force Docker`);
-    console.log(`             --port <number>  OTLP port`);
-    console.log(`  ${BOLD}help${RESET}       Show this message`);
-    console.log(`\nFlags:`);
-    console.log(`  ${BOLD}--version, -v${RESET}  Print version`);
-    console.log(`  ${BOLD}--help, -h${RESET}     Show this help`);
-    console.log(`  ${BOLD}--preview${RESET}      Show team summary without launching shell`);
-    console.log(`  ${BOLD}--global${RESET}       Use personal squad path`);
-    console.log(`  ${BOLD}--timeout <s>${RESET}   Set REPL inactivity timeout (seconds, default: 600)`);
+
+    console.log(`${BOLD}Getting Started${RESET}`);
+    console.log(`  ${BOLD}init${RESET}           Create .squad/ in this repo ${DIM}(alias: hire)${RESET}`);
+    console.log(`                 --global             Create personal squad directory`);
+    console.log(`                 --mode remote <path>  Link to a remote team root`);
+    console.log(`  ${BOLD}upgrade${RESET}        Update Squad files to latest`);
+    console.log(`                 --global             Upgrade personal squad`);
+    console.log(`                 --migrate-directory  Rename .ai-team/ → .squad/`);
+    console.log(`  ${BOLD}status${RESET}         Show which squad is active`);
+    console.log(`  ${BOLD}doctor${RESET}         Check your setup ${DIM}(alias: heartbeat)${RESET}`);
+
+    console.log(`\n${BOLD}Development${RESET}`);
+    console.log(`  ${BOLD}shell${RESET}          Launch interactive shell`);
+    console.log(`  ${BOLD}run${RESET}            Send a message to a specific agent`);
+    console.log(`                 <agent> [prompt]`);
+
+    console.log(`\n${BOLD}Team Management${RESET}`);
+    console.log(`  ${BOLD}triage${RESET}         Watch issues and auto-triage ${DIM}(alias: watch, loop)${RESET}`);
+    console.log(`                 --interval <minutes>  Polling frequency (default: 10)`);
+    console.log(`  ${BOLD}copilot${RESET}        Add/remove GitHub Copilot agent`);
+    console.log(`                 --off                Remove @copilot`);
+    console.log(`                 --auto-assign        Enable auto-assignment`);
+    console.log(`  ${BOLD}link${RESET}           Connect to a remote team`);
+    console.log(`                 <team-repo-path>`);
+    console.log(`  ${BOLD}upstream${RESET}       Manage upstream Squad sources`);
+    console.log(`                 add|remove|list|sync`);
+
+    console.log(`\n${BOLD}Utilities${RESET}`);
+    console.log(`  ${BOLD}export${RESET}         Save squad to JSON`);
+    console.log(`                 --out <path>         Output path (default: squad-export.json)`);
+    console.log(`  ${BOLD}import${RESET}         Load squad from JSON`);
+    console.log(`                 <file> [--force]`);
+    console.log(`  ${BOLD}plugin${RESET}         Manage plugins`);
+    console.log(`                 marketplace add|remove|list|browse`);
+    console.log(`  ${BOLD}aspire${RESET}         Open Aspire dashboard`);
+    console.log(`                 --docker             Force Docker mode`);
+    console.log(`                 --port <number>      OTLP port (default: 4317)`);
+    console.log(`  ${BOLD}scrub-emails${RESET}   Remove email addresses from squad state`);
+    console.log(`                 [directory]          Target directory (default: .squad/)`);
+
+    console.log(`\n${BOLD}Flags${RESET}`);
+    console.log(`  --version, -v            Print version`);
+    console.log(`  --help, -h               Show this help`);
+    console.log(`  --preview                Show team summary without launching shell`);
+    console.log(`  --global                 Use personal squad path`);
+    console.log(`  --timeout <seconds>      Set REPL inactivity timeout (default: 600)`);
+
+    console.log(`\n${BOLD}Examples${RESET}`);
+    console.log(`  ${DIM}$ squad init${RESET}                          Set up a squad in this repo`);
+    console.log(`  ${DIM}$ squad triage --interval 5${RESET}           Poll issues every 5 minutes`);
+    console.log(`  ${DIM}$ squad export --out ./backups/team.json${RESET}`);
+    console.log(`                                        Save squad snapshot`);
+    console.log(`  ${DIM}$ squad copilot --auto-assign${RESET}         Add @copilot with auto-assignment`);
+    console.log(`  ${DIM}$ squad doctor${RESET}                        Diagnose setup issues`);
+
     console.log(`\nInstallation:`);
     console.log(`  npm i --save-dev @bradygaster/squad-cli`);
     console.log(`\nInsider channel:`);
-    console.log(`  npm i --save-dev @bradygaster/squad-cli@insider\n`);
+    console.log(`  npm i --save-dev @bradygaster/squad-cli@insider`);
+    console.log(`\nRun 'squad <command> --help' for details.\n`);
     return;
   }
 

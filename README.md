@@ -59,15 +59,16 @@ Squad proposes a team — each member named from a persistent thematic cast. You
 
 ---
 
-## All Commands
+## All Commands (16 commands)
 
 | Command | What it does |
 |---------|-------------|
-| `squad init` | **Init** — scaffold Squad in the current directory (skips existing files); safe to run multiple times; use `--global` to init in personal squad directory |
+| `squad init` | **Init** — scaffold Squad in the current directory (idempotent — safe to run multiple times); use `--global` to init in personal squad directory |
+| `squad init --mode remote <path>` | Initialize linked to a remote team root (dual-root mode — project state in `.squad/`, team identity in a shared location) |
 | `squad upgrade` | Update Squad-owned files to latest; never touches your team state; use `--global` to upgrade personal squad |
 | `squad upgrade --migrate-directory` | Rename `.ai-team/` → `.squad/` (legacy migration) |
 | `squad status` | Show which squad is active and why |
-| `squad triage` | Watch issues and auto-triage to team |
+| `squad triage` | Watch issues and auto-triage to team (`watch` is an alias); use `--interval <minutes>` to set polling frequency (default: 10) |
 | `squad copilot` | Add the Copilot coding agent (@copilot) to your squad |
 | `squad plugin marketplace add\|remove\|list\|browse` | Manage plugin marketplaces |
 | `squad export` | Export squad to a portable JSON snapshot |
@@ -75,6 +76,8 @@ Squad proposes a team — each member named from a persistent thematic cast. You
 | `squad doctor` | Check your setup and diagnose issues |
 | `squad link <team-repo-path>` | Connect to a remote team |
 | `squad aspire` | Open Aspire dashboard for observability |
+| `squad upstream add\|remove\|list\|sync` | Manage upstream Squad sources |
+| `squad shell` | Launch interactive shell explicitly |
 | `squad scrub-emails [directory]` | Remove email addresses from Squad state files (default: `.squad/`) |
 
 ---
@@ -108,13 +111,14 @@ All shell commands start with `/`:
 | `/agents` | List all team members |
 | `/sessions` | List saved sessions |
 | `/resume <id>` | Restore a past session |
+| `/version` | Show version |
 | `/clear` | Clear the screen |
 | `/help` | Show all commands |
 | `/quit` | Exit the shell (or Ctrl+C) |
 
 ### Talking to Agents
 
-Use `@AgentName` or natural language with a comma:
+Use `@AgentName` (case-insensitive) or natural language with a comma:
 
 ```
 squad > @Keaton, analyze the architecture of this project

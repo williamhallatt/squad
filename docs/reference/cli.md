@@ -19,20 +19,20 @@ squad init
 
 ---
 
-## CLI Commands
+## CLI Commands (16 commands)
 
 | Command | Description | Requires `.squad/` |
 |---------|-------------|:------------------:|
 | `squad` | Enter interactive shell (no args) | No |
 | `squad init` | Initialize Squad in the current repo (idempotent — safe to run multiple times) | No |
 | `squad init --global` | Create a personal squad at `~/.squad/` | No |
-| `squad init --mode remote <path>` | Initialize linked to a remote team root | No |
+| `squad init --mode remote <path>` | Initialize linked to a remote team root (dual-root mode) | No |
 | `squad status` | Show which squad is active and why | Yes |
-| `squad doctor` | Validate squad setup integrity and diagnose issues | Yes |
+| `squad doctor` | Validate squad setup integrity and diagnose issues (alias: `heartbeat`) | Yes |
 | `squad upgrade` | Upgrade Squad-owned files to latest version | Yes |
 | `squad upgrade --migrate-directory` | Rename legacy `.ai-team/` directory to `.squad/` | Yes |
 | `squad link <team-repo-path>` | Link project to a remote team root | Yes |
-| `squad triage` | Scan for work and categorize issues | Yes |
+| `squad triage` | Auto-triage issues and assign to team (primary name; `watch` is an alias) | Yes |
 | `squad triage --interval <min>` | Continuous triage (default: every 10 min) | Yes |
 | `squad copilot` | Add the @copilot coding agent to the team | Yes |
 | `squad copilot --off` | Remove @copilot from the team | Yes |
@@ -44,8 +44,20 @@ squad init
 | `squad import <file> --force` | Replace existing squad (archives the old one) | No |
 | `squad aspire` | Launch Aspire dashboard for observability | No |
 | `squad aspire --docker` | Force Docker mode for Aspire | No |
+| `squad upstream add\|remove\|list\|sync` | Manage upstream Squad sources | Yes |
+| `squad shell` | Launch interactive shell explicitly | No |
 | `squad scrub-emails [directory]` | Remove email addresses from Squad state files (default: `.squad/`) | No |
 | `squad --version` | Print installed version | No |
+
+### Remote Init Mode
+
+Use `--mode remote` to link your project to a shared team root:
+
+```bash
+squad init --mode remote ../team-repo
+```
+
+In dual-root mode, project-specific state lives in your local `.squad/` while team identity (casting, charters, shared decisions) lives in the remote location. This is useful for monorepos or organizations with a shared team definition.
 
 ---
 
@@ -66,6 +78,9 @@ All shell commands start with `/`.
 | `/status` | Show active agents, sessions, recent decisions |
 | `/history` | View session log — tasks, decisions, agent work |
 | `/agents` | List team members with roles and expertise |
+| `/sessions` | List saved sessions |
+| `/resume <id>` | Restore a past session |
+| `/version` | Show version |
 | `/clear` | Clear terminal output |
 | `/help` | Show all commands |
 | `/quit` | Exit the shell (also: `Ctrl+C`) |
@@ -78,7 +93,7 @@ squad > Keaton, set up the database schema
 squad > Build a blog post about our casting system
 ```
 
-Name an agent to route directly. Omit the name and the coordinator routes to the best fit.
+Agent name matching is **case-insensitive** — `@keaton`, `@Keaton`, and `@KEATON` all route to the same agent. Name an agent to route directly. Omit the name and the coordinator routes to the best fit.
 
 ### Keyboard Shortcuts
 
@@ -214,6 +229,19 @@ This performs a comprehensive diagnostic check of your Squad setup, validating:
 - Agent definitions and capabilities
 - File permissions and integrity
 - Integration with GitHub and Copilot
+
+### Usage Examples
+
+```bash
+# Run diagnostics on the current project
+squad doctor
+
+# Quick check after upgrading Squad
+squad upgrade && squad doctor
+
+# Verify setup after cloning a repo with a squad
+git clone my-project && cd my-project && squad doctor
+```
 
 ### Example Output
 
