@@ -400,3 +400,37 @@
 **What:** Banner hint/usage lines use middle dot `·` as inline separator. Init messages use single CTA (no dual-path instructions).
 **Why:** Consistent visual rhythm. Middle dot is lighter than em-dash or hyphen for inline command lists. Single CTA reduces cognitive load for new users.
 **Impact:** App.tsx headerElement. Future banner copy should follow same separator and single-CTA pattern.
+
+### 2026-03-02: REPL casting engine design
+**By:** Fenster (Core Dev)
+**Date:** 2026-03-02
+**Status:** Implemented
+**Issue:** #638
+**What:** Created `packages/squad-cli/src/cli/core/cast.ts` as a self-contained casting engine with four exports:
+1. `parseCastResponse()` — parses the `INIT_TEAM:` format from coordinator output
+2. `createTeam()` — scaffolds all `.squad/agents/` directories, writes charters, updates team.md and routing.md, writes casting state JSON
+3. `roleToEmoji()` — maps role strings to emoji, reusable across the CLI
+4. `formatCastSummary()` — renders a padded roster summary for terminal display
+
+Scribe and Ralph are always injected if missing from the proposal. Casting state is written to `.squad/casting/` (registry.json, history.json, policy.json).
+**Why:** Enables coordinator to propose and create teams from within the REPL session after `squad init`.
+**Implications:**
+
+### 2026-02-28: Init flow reliability — proposal-first before code
+
+**By:** Keaton (Lead)
+**Date:** 2026-02-28
+**What:** Init/onboarding fixes require a proposal review before implementation. Proposal at `docs/proposals/reliable-init-flow.md`. Two confirmed bugs (race condition in auto-cast, Ctrl+C doesn't abort init session) plus UX gaps (empty-roster messaging, `/init` no-op). P0 bugs are surgical — don't expand scope.
+**Why:** Four PRs (#637–#640) patched init iteratively without a unified design. Before writing more patches, the team needs to agree on the golden path. Proposal-first (per team decision 2026-02-21).
+**Impact:** Blocks init-related code changes until Brady reviews the proposal.
+- Kovash (REPL): Can call `parseCastResponse` + `createTeam` to wire up casting flow in shell dispatcher
+- Verbal (Prompts): INIT_TEAM format is now the contract — coordinator prompt should emit this
+- Hockney (Tests): cast.ts needs unit tests for parser edge cases, emoji mapping, file creation
+
+### 2026-03-02: REPL empty-roster gate — dual check pattern
+**By:** Fenster (Core Dev)
+**Date:** 2026-03-02
+**What:** REPL dispatch is now gated on *populated* roster, not just team.md existence. `hasRosterEntries()` in `coordinator.ts` checks for table data rows in the `## Members` section. Two layers: `handleDispatch` blocks with user guidance, `buildCoordinatorPrompt` injects refusal prompt.
+**Why:** After `squad init`, team.md exists but is empty. Coordinator received a "route to agents" prompt with no agents listed, causing silent generic AI behavior. Users never got told to cast their team.
+**Convention:** Post-init message references "Copilot session" (works in VS Code, github.com, and Copilot CLI). The `/init` slash command provides same guidance inside REPL.
+**Impact:** All agents — if you modify the `## Members` table format in team.md templates, update `hasRosterEntries()` to match.

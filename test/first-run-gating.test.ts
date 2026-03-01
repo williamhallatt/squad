@@ -577,21 +577,21 @@ describe('#625 — Redundant init messaging eliminated', () => {
     expect(firstRunContent).toBe('assembled');
   });
 
-  it('banner text uses single /init CTA (no dual-path)', async () => {
-    // App.tsx line 300: text should mention /init only — no 'squad init' dual-path (#626)
+  it('banner text uses simple CTA when roster is empty', async () => {
+    // App.tsx line 300: text should be a simple CTA when roster is empty
     const fs = await import('node:fs');
     const source = fs.readFileSync(
       join(process.cwd(), 'packages', 'squad-cli', 'src', 'cli', 'shell', 'components', 'App.tsx'),
       'utf-8',
     );
 
-    // Find the empty-roster banner guidance line
-    const guidanceMatch = source.match(/rosterAgents\.length === 0[\s\S]*?<Text[^>]*>[^<]*\/init[^<]*<\/Text>/);
+    // Find the empty-roster banner guidance line — should have a simple message
+    const guidanceMatch = source.match(/rosterAgents\.length === 0[\s\S]*?<Text[^>]*>[^<]+<\/Text>/);
     expect(guidanceMatch).not.toBeNull();
 
     const guidanceLine = guidanceMatch![0];
-    expect(guidanceLine).toContain('/init');
-    expect(guidanceLine).not.toContain('squad init');
+    // Should NOT reference 'squad cast' (doesn't exist as a command)
+    expect(guidanceLine).not.toContain('squad cast');
   });
 });
 
@@ -607,16 +607,16 @@ describe('Banner simplification (#626, #627)', () => {
     return fs.readFileSync(appPath, 'utf-8');
   }
 
-  it('Banner init message uses single CTA — /init only, no squad init', async () => {
+  it('Banner init message uses simple CTA — no squad cast reference', async () => {
     const source = await readAppSource();
 
     // Find the empty-roster guidance line (rosterAgents.length === 0 branch)
-    const emptyRosterBlock = source.match(/rosterAgents\.length === 0[\s\S]*?<Text[^>]*>([^<]*\/init[^<]*)<\/Text>/);
+    const emptyRosterBlock = source.match(/rosterAgents\.length === 0[\s\S]*?<Text[^>]*>([^<]+)<\/Text>/);
     expect(emptyRosterBlock).not.toBeNull();
 
     const guidanceText = emptyRosterBlock![1];
-    expect(guidanceText).toContain('/init');
-    expect(guidanceText).not.toContain('squad init');
+    // Should NOT reference non-existent 'squad cast' command
+    expect(guidanceText).not.toContain('squad cast');
   });
 
   it('Usage line uses middle-dot separators (U+00B7)', async () => {

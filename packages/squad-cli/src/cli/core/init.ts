@@ -300,7 +300,7 @@ Reusable patterns and heuristics learned through work. NOT transcripts — each 
   // Create team.md
   const teamDest = path.join(squadInfo.path, 'team.md');
   if (!fsSync.existsSync(teamDest)) {
-    const teamTemplate = `# Team\n\n> Your Squad roster. Add members with \`squad cast\` or edit directly.\n\n## Members\n\n<!-- Add team members here -->\n`;
+    const teamTemplate = `# Team\n\n> Your Squad roster. Run \`squad init "describe your project"\` to cast a team.\n\n## Members\n\n<!-- Add team members here -->\n`;
     await fs.writeFile(teamDest, teamTemplate);
     success(`${squadInfo.name}/team.md`);
   } else {

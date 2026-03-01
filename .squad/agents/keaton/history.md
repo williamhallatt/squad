@@ -7,6 +7,24 @@
 
 ## Learnings
 
+### 📌 Architecture analysis (2026-02-28T23:23:00Z): Init/onboarding flow audit — Brady's request
+- **Status:** Completed — comprehensive analysis of all 7 init entry paths across PRs #637–#640
+- **Key findings:**
+  - **Race condition bug:** `setTimeout(100)` auto-cast trigger in `shell/index.ts:905` fires before `shellApi` is guaranteed set. Silent failure.
+  - **Ctrl+C bug:** Init session (`handleInitCast` local var) not reachable by `handleCancel()`. Orphaned SDK session on abort.
+  - **Two divergent casting flows:** CLI `buildInitModePrompt()` (thin stub) vs `squad.agent.md` Init Mode (rich 2-phase with confirmation). Zero shared code.
+  - **`/init` REPL command is a no-op** — prints instructions instead of triggering casting.
+  - **Golden path works:** `squad init "prompt"` → `squad` → auto-cast → team created. Fails silently on other paths.
+- **Proposal:** `docs/proposals/reliable-init-flow.md` — P0 bug fixes (~2h), P1 empty-roster UX (~2h), P2 confirmation step (~3h), P3 casting alignment (separate PR)
+- **Key files:**
+  - `packages/squad-cli/src/cli/shell/index.ts` — runShell(), handleInitCast(), handleDispatch(), auto-cast trigger
+  - `packages/squad-cli/src/cli/shell/coordinator.ts` — buildInitModePrompt(), buildCoordinatorPrompt(), hasRosterEntries()
+  - `packages/squad-cli/src/cli/core/init.ts` — runInit(), .init-prompt/.first-run marker logic
+  - `packages/squad-cli/src/cli/core/cast.ts` — parseCastResponse() (4 parser strategies), createTeam()
+  - `packages/squad-cli/src/cli/shell/commands.ts` — /init REPL command
+  - `packages/squad-cli/src/cli-entry.ts` — CLI routing, no-squad welcome, init prompt extraction
+  - `templates/squad.agent.md` — agent-side Init Mode (separate from CLI flow)
+
 ### 📌 Team update (2026-02-28T17:15:00Z): Backlog gap issues filed (8 items) — Brady's directive
 - **Status:** Completed — Keaton (lead) filed all 8 missing backlog items from `.squad/identity/now.md`
 - **Outcome:** 8 new issues filed and routed to owners:

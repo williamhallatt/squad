@@ -197,6 +197,7 @@ export async function runShell(): Promise<void> {
   let origAddMessage: ((msg: ShellMessage) => void) | undefined;
   const agentSessions = new Map<string, SquadSession>();
   let coordinatorSession: SquadSession | null = null;
+  let activeInitSession: SquadSession | null = null;
 
   // Eager SDK warm-up — start coordinator session before user's first message
   // This runs in background so UI renders immediately
@@ -579,6 +580,12 @@ export async function runShell(): Promise<void> {
   async function handleCancel(): Promise<void> {
     debugLog('handleCancel: aborting active sessions');
 
+    // Abort init session if active
+    if (activeInitSession) {
+      try { await activeInitSession.abort?.(); debugLog('aborted init session'); } catch (err) { debugLog('abort init failed:', err); }
+      activeInitSession = null;
+    }
+
     // Abort coordinator session
     if (coordinatorSession) {
       try { await coordinatorSession.abort?.(); } catch (err) { debugLog('abort coordinator failed:', err); }
@@ -636,6 +643,7 @@ export async function runShell(): Promise<void> {
         systemMessage: { mode: 'append', content: initSysPrompt },
         workingDirectory: teamRoot,
       });
+      activeInitSession = initSession;
       debugLog('handleInitCast: init session created');
 
       // Send the prompt and collect the response
@@ -715,6 +723,7 @@ export async function runShell(): Promise<void> {
       // Close the init session
       try { await initSession.close?.(); } catch { /* ignore */ }
       initSession = null;
+      activeInitSession = null;
 
       // Register the new agents in the session registry
       for (const member of proposal.members) {
@@ -744,6 +753,7 @@ export async function runShell(): Promise<void> {
       if (initSession) {
         try { await initSession.close?.(); } catch { /* ignore */ }
       }
+      activeInitSession = null;
       shellApi?.setActivityHint(undefined);
     }
   }
@@ -879,6 +889,34 @@ export async function runShell(): Promise<void> {
               content: `✓ Resumed session ${recentSession.id.slice(0, 8)} (${recentSession.messages.length} messages)`,
               timestamp: new Date(),
             });
+          }
+
+          // Bug fix #3: Clean up orphan .init-prompt if team already exists
+          const initPromptPath = join(teamRoot, '.squad', '.init-prompt');
+          const teamFilePath = join(teamRoot, '.squad', 'team.md');
+          if (existsSync(teamFilePath)) {
+            const tc = readFileSync(teamFilePath, 'utf-8');
+            if (hasRosterEntries(tc) && existsSync(initPromptPath)) {
+              debugLog('Cleaning up orphan .init-prompt (team already exists)');
+              try { unlinkSync(initPromptPath); } catch { /* ignore */ }
+            }
+          }
+
+          // Bug fix #1: Auto-cast after shellApi is guaranteed to be set (no race condition)
+          if (existsSync(initPromptPath) && existsSync(teamFilePath)) {
+            const tc = readFileSync(teamFilePath, 'utf-8');
+            if (!hasRosterEntries(tc)) {
+              const storedPrompt = readFileSync(initPromptPath, 'utf-8').trim();
+              if (storedPrompt) {
+                debugLog('Auto-cast: .init-prompt found with empty roster, triggering cast');
+                // Trigger cast after Ink settles, but now shellApi is guaranteed to be set
+                setTimeout(() => {
+                  handleInitCast({ type: 'coordinator', raw: storedPrompt, content: storedPrompt }).catch(err => {
+                    debugLog('Auto-cast error:', err);
+                  });
+                }, 100);
+              }
+            }
           }
         },
         onDispatch: handleDispatch,

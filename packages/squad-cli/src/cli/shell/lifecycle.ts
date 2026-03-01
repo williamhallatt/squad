@@ -82,7 +82,12 @@ export class ShellLifecycle {
     this.discoveredAgents = parseTeamManifest(teamContent);
 
     if (this.discoveredAgents.length === 0) {
-      console.warn('⚠ No agents found in team.md. Run `squad init` to set up your team, or `squad doctor` to diagnose.');
+      const initPromptPath = path.join(squadDir, '.init-prompt');
+      if (fs.existsSync(initPromptPath)) {
+        console.warn('🏗️ No team yet — auto-casting from your init prompt...');
+      } else {
+        console.warn('⚠ No agents found in team.md. Run `squad init "describe your project"` to cast a team.');
+      }
     }
 
     // Register discovered agents in the session registry

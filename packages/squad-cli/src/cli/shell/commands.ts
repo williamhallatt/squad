@@ -24,6 +24,8 @@ export interface CommandResult {
   output?: string;
   /** When true, the shell should clear its message history. */
   clear?: boolean;
+  /** When true, the shell should trigger init casting with the provided prompt. */
+  triggerInitCast?: { prompt: string };
 }
 
 /**
@@ -57,7 +59,7 @@ export function executeCommand(
     case 'nap':
       return handleNap(args, context);
     case 'init':
-      return handleInit(context);
+      return handleInit(args, context);
     default:
       return { handled: false, output: `Hmm, /${command}? Type /help for commands.` };
   }
@@ -209,7 +211,19 @@ function handleNap(args: string[], context: CommandContext): CommandResult {
   }
 }
 
-function handleInit(context: CommandContext): CommandResult {
+function handleInit(args: string[], context: CommandContext): CommandResult {
+  // Check if args contain an inline prompt
+  const prompt = args.join(' ').trim();
+  
+  if (prompt) {
+    // Inline prompt provided: /init "Build a snake game"
+    return {
+      handled: true,
+      triggerInitCast: { prompt },
+    };
+  }
+  
+  // No prompt: guide the user
   return {
     handled: true,
     output: [

@@ -288,6 +288,23 @@ Fenster's src/utils/normalize-eol.ts utility is now applied to 8 parser entry po
 - **Build:** tsc clean (0 errors). **Tests:** 47 shell tests passing.
 
 ### 📌 Mechanical Documentation Updates (2026-02-23) — Fenster (Issues #191, #192, #195)
+
+### 📌 Auto-cast polish post-commit recovery (2026-02-23) — Fenster (PR #640)
+**Context:** CLI crashed mid-session. Uncommitted changes from REPL auto-cast polish work (follow-up to #637-639) remained on `main`. Build clean, all 3244 tests passing.
+**Task:** Commit changes properly to feature branch.
+**Actions:**
+- Created branch `squad/640-auto-cast-polish` from current state.
+- Staged 10 modified files (history, package.json, CLI/SDK packages, shell components, lifecycle, init, test).
+- Committed with conventional message referencing #639 follow-up.
+- Pushed to origin and opened PR #640 via `gh pr create`.
+**Changes committed:**
+- Auto-cast trigger: shell reads `.init-prompt` on startup, triggers handleInitCast when roster empty.
+- Banner simplified: "Send a message to get started" (replaces `/init` CTA).
+- Lifecycle warnings differentiate auto-cast from no-prompt scenarios.
+- Init template text clarity improvements.
+- Test assertions updated for new banner.
+- Version bumped to 0.8.6.3-preview.
+**Pattern:** When recovering uncommitted work post-crash — verify build/tests first, branch from current state, commit with full context, push and PR immediately.
 - **Issue #191 (.ai-team/ → .squad/):** Updated 42+ doc files to reflect `.squad/` as the standard team directory. Removed language about "legacy fallback" and "auto-detection of .ai-team/". Updated migration guides, feature docs, blog posts, templates, and architecture diagrams to use `.squad/` consistently.
   - Files updated: diagrams.md, quick-reference.md, module-map.md, codebase-comparison.md, 004-m3-feature-parity.md, checklist.md, beta-to-v1.md, feature-migration.md, 006-sdk-replatform.md, respawn-prompt.md, demo-scenarios.md, faq.md, migration-guide-v051-v060.md, 010-v060-replatform.md, operational-runbooks.md, squadui-type-corrections.md, release-notes-v060.md, 015-m2-configuring-squad.md, 011-migration-guide.md, test-scripts/05-beta-parity.md, team-to-brady.md, templates/scribe-charter.md, templates/squad.agent.md.
   - Pattern: Removed references to `.ai-team/` as a fallback/legacy directory. Updated code examples, comments, and prose to assume `.squad/` is the primary and only standard directory.
@@ -646,3 +663,41 @@ The upstream.ts command was fully implemented but never wired into cli-entry.ts.
 **Verified:** Build clean, all 3229 tests pass.
 📌 Team update (2026-03-01T05:57:23): Nap feature complete — dual sync/async export pattern, 38 comprehensive tests, all 3229 tests pass. Issue #635 closed, PR #636 merged. — decided by Fenster, Hockney
 
+
+### REPL casting engine (2026-03-02)
+
+**Task:** Create `cast.ts` — the team casting engine for REPL-driven team creation (#638).
+
+**What it does:**
+- `parseCastResponse()` parses INIT_TEAM blocks from coordinator responses into typed `CastProposal` objects
+- `createTeam()` scaffolds all agent directories, charter.md, history.md, updates team.md and routing.md, writes casting state JSON
+- `roleToEmoji()` maps role keywords to emoji for display
+- `formatCastSummary()` renders a human-readable team roster
+
+**Key decisions:**
+- Always injects Scribe (session logger) and Ralph (work monitor) if not in the proposal
+- team.md update preserves content before/after `## Members` section
+- routing.md gets appended (not replaced) with new work-type table
+- Casting state goes to `.squad/casting/` (registry.json, history.json, policy.json)
+- Uses `node:fs/promises` for all I/O, `{ recursive: true }` for directory creation
+
+**Files created:** `packages/squad-cli/src/cli/core/cast.ts`
+**Verified:** TypeScript compiles clean (`tsc --noEmit`).
+
+### Init flow P0 bug fixes (2026-03-02)
+
+**Task:** Fix three P0 bugs in the init/onboarding flow identified in `docs/proposals/reliable-init-flow.md` (#640).
+
+**Bugs fixed:**
+1. **Race condition (Bug 1):** Auto-cast was firing via `setTimeout(100)` before `shellApi` was guaranteed to be set in the `onReady` callback. Moved the auto-cast check INTO the `onReady` callback where `shellApi` is set, eliminating the silent failure mode.
+2. **Unabortable init session (Bug 2):** Ctrl+C during casting didn't abort the init session because `handleInitCast()` stored the session in a local variable. Added module-level `activeInitSession` variable, set it when creating the init session, wired `handleCancel()` to abort it.
+3. **Orphan .init-prompt (Bug 3):** If a team already existed and `.init-prompt` was left over from a previous init, it sat unused forever. Added cleanup logic in `onReady`: if roster has entries AND `.init-prompt` exists, delete it.
+
+**Key decisions:**
+- Auto-cast still uses `setTimeout(100)` to let Ink settle, but now runs inside `onReady` where `shellApi` is guaranteed
+- `activeInitSession` is set when session is created, cleared in both success path and finally block
+- `.init-prompt` cleanup happens early in shell startup, right after session restoration
+
+**Files modified:** `packages/squad-cli/src/cli/shell/index.ts`
+**Verified:** Build clean (SDK + CLI), 3240/3245 tests pass (4 pre-existing timing failures unrelated to changes).
+**Ref:** `docs/proposals/reliable-init-flow.md` (Keaton's proposal), `squad/640-auto-cast-polish` branch.

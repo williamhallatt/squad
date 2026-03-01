@@ -197,6 +197,21 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
         return;
       }
 
+      if (result.triggerInitCast && onDispatch) {
+        // /init command returned a cast trigger — dispatch it as a coordinator message
+        const castParsed: ParsedInput = {
+          type: 'coordinator',
+          raw: result.triggerInitCast.prompt,
+          content: result.triggerInitCast.prompt,
+        };
+        setProcessing(true);
+        onDispatch(castParsed).finally(() => {
+          setProcessing(false);
+          setAgents([...registry.getAll()]);
+        });
+        return;
+      }
+
       if (result.output) {
         appendMessages(prev => [...prev, {
           role: 'system' as const,
@@ -297,7 +312,7 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
           <Text dimColor>  {agentCount} agent{agentCount !== 1 ? 's' : ''} ready - {activeCount} active</Text>
         </>
       ) : bannerReady && rosterAgents.length === 0 ? (
-        <Text dimColor>{"  Type /init to set up your team"}</Text>
+        <Text dimColor>{"  Describe what you're building to cast your team"}</Text>
       ) : null}
       {bannerReady && wide && welcome?.focus ? <Text dimColor>Focus: {welcome.focus}</Text> : null}
       {bannerReady && <Text dimColor>Type naturally · @Agent to direct · /help · Ctrl+C to exit</Text>}

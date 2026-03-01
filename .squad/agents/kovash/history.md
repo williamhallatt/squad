@@ -94,3 +94,17 @@
 - **All value mutation paths** (backspace, history nav, tab completion, regular input) now sync `valueRef` alongside React state to keep the ref as source of truth for the debounced submit.
 📌 Team update (2026-03-01T05:57:23): Nap feature complete — dual sync/async export pattern, 38 comprehensive tests, all 3229 tests pass. Issue #635 closed, PR #636 merged. — decided by Fenster, Hockney
 
+### Issue #640 P1 UX fixes — Init flow usability (2026-03-01)
+- **Context:** Keaton identified P1 improvements for init flow in `docs/proposals/reliable-init-flow.md` after Snake009 test showed users stuck at empty REPL with no guidance. Working on branch `squad/640-auto-cast-polish`.
+- **Issue 1: Make `/init` actually useful** — Command was a no-op that just printed "type what you want to build." Now:
+  - `/init "Build a snake game"` takes inline prompt and triggers casting via `triggerInitCast` signal in `CommandResult`
+  - App.tsx handles the signal asynchronously (respects ESM sync constraint — `executeCommand` is synchronous, can't call async functions directly)
+  - `/init` with no args shows usage guidance
+  - Pattern mirrors other async command flows (like `/nap`) — command returns signal, caller handles async work
+- **Issue 2: Improve empty-roster banner** — Changed from generic "Send a message to get started" to explicit "Describe what you're building to cast your team." Users now understand their first message will assemble the team.
+- **Key constraint:** REPL `executeCommand` function is SYNCHRONOUS. ESM forbids `require()` and Promises won't resolve inline. Solution: return `triggerInitCast` signal in `CommandResult`, let App.tsx handle async dispatch.
+- **Files:** `commands.ts` (added `triggerInitCast` to CommandResult, updated handleInit), `App.tsx` (handle triggerInitCast signal, updated banner text)
+- **Build:** TypeScript compiles cleanly. Commit 044ec20 on branch `squad/640-auto-cast-polish`.
+- **Pattern learned:** When a slash command needs to trigger async work, return a signal object in CommandResult. The caller (App.tsx handleSubmit) checks for signals and dispatches appropriately. Keeps command handler synchronous while enabling async workflows.
+
+
