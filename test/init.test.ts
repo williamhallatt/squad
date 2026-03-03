@@ -154,7 +154,7 @@ describe('Squad Initialization', () => {
 
       const content = await readFile(gitattributesPath, 'utf-8');
       expect(content).toContain('history.md merge=union');
-      expect(content).toContain('decisions/*.md merge=union');
+      expect(content).toContain('.squad/decisions.md merge=union');
     });
 
     it('should create initial decisions.md', async () => {
@@ -167,7 +167,7 @@ describe('Squad Initialization', () => {
 
       await initSquad(options);
 
-      const decisionsPath = join(TEST_ROOT, '.squad', 'decisions', 'decisions.md');
+      const decisionsPath = join(TEST_ROOT, '.squad', 'decisions.md');
       expect(existsSync(decisionsPath)).toBe(true);
 
       const content = await readFile(decisionsPath, 'utf-8');
@@ -262,9 +262,9 @@ describe('Squad Initialization', () => {
       // Should include: config, 2 charters, 2 histories, gitattributes, decisions
       expect(result.createdFiles.length).toBeGreaterThanOrEqual(7);
 
-      // Verify all files exist
+      // Verify all files exist (paths are relative to teamRoot)
       for (const filePath of result.createdFiles) {
-        expect(existsSync(filePath)).toBe(true);
+        expect(existsSync(join(TEST_ROOT, filePath))).toBe(true);
       }
     });
   });

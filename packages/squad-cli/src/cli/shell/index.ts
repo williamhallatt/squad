@@ -7,7 +7,7 @@
 
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve as pathResolve } from 'node:path';
 import React from 'react';
 import { render } from 'ink';
 import { App } from './components/App.js';
@@ -1178,6 +1178,28 @@ export async function runShell(): Promise<void> {
 
   // Final session save before cleanup
   autoSave();
+
+  // Consult mode reminder: prompt user to extract learnings before exiting
+  try {
+    const squadDir = pathResolve(process.cwd(), '.squad');
+    const configPath = join(squadDir, 'config.json');
+    if (existsSync(configPath)) {
+      const raw = readFileSync(configPath, 'utf8');
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed && typeof parsed === 'object' && (parsed as { consult?: boolean }).consult === true) {
+        const nc = process.env['NO_COLOR'] != null && process.env['NO_COLOR'] !== '';
+        const highlight = nc ? '' : '\x1b[33m';
+        const reset = nc ? '' : '\x1b[0m';
+        console.log('');
+        console.log(`${highlight}📤 You're in consult mode.${reset}`);
+        console.log(`   Run ${highlight}squad extract${reset} to bring learnings home.`);
+        console.log(`   Run ${highlight}squad extract --clean${reset} to extract and remove project .squad/`);
+        console.log('');
+      }
+    }
+  } catch {
+    // Silently ignore — consult mode check is optional
+  }
 
   // Cleanup: close all sessions and disconnect
   for (const [name, session] of agentSessions) {

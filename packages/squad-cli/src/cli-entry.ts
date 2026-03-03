@@ -393,6 +393,57 @@ ${BOLD}EXAMPLES${RESET}
   ${DIM}# Link to absolute path${RESET}
   squad link /Users/org/shared-squad
 `,
+    consult: `
+${BOLD}squad consult${RESET} — Enter Consult Mode
+
+${BOLD}USAGE${RESET}
+  squad consult [--status] [--check]
+
+${BOLD}DESCRIPTION${RESET}
+  Brings your personal squad to consult on an external project.
+  Creates an invisible .squad/ that points to your personal squad.
+  The project never sees Squad was there (uses .git/info/exclude).
+
+${BOLD}OPTIONS${RESET}
+  --status    Check if in consult mode, show team info
+  --check     Dry-run: preview what would happen
+
+${BOLD}EXAMPLES${RESET}
+  ${DIM}# Enter consult mode${RESET}
+  squad consult
+
+  ${DIM}# Check consult mode status${RESET}
+  squad consult --status
+
+  ${DIM}# Preview without creating files${RESET}
+  squad consult --check
+`,
+    extract: `
+${BOLD}squad extract${RESET} — Extract Learnings from Consult Session
+
+${BOLD}USAGE${RESET}
+  squad extract [--dry-run] [--clean] [--yes] [--accept-risks]
+
+${BOLD}DESCRIPTION${RESET}
+  Reviews session history from consult mode and extracts generic learnings
+  back to your personal squad. Only works in consult mode.
+
+${BOLD}OPTIONS${RESET}
+  --dry-run       Preview what would be extracted (no changes)
+  --clean         Delete project .squad/ after extraction
+  --yes           Skip confirmation prompt with --clean
+  --accept-risks  Proceed despite copyleft license warning
+
+${BOLD}EXAMPLES${RESET}
+  ${DIM}# Preview extraction${RESET}
+  squad extract --dry-run
+
+  ${DIM}# Extract and clean up${RESET}
+  squad extract --clean
+
+  ${DIM}# Extract from GPL project (acknowledge risks)${RESET}
+  squad extract --accept-risks
+`,
     aspire: `
 ${BOLD}squad aspire${RESET} — Launch Aspire Dashboard
 
@@ -565,6 +616,13 @@ async function main(): Promise<void> {
     console.log(`                 --auto-assign        Enable auto-assignment`);
     console.log(`  ${BOLD}link${RESET}           Connect to a remote team`);
     console.log(`                 <team-repo-path>`);
+    console.log(`  ${BOLD}consult${RESET}        Use personal squad on external project`);
+    console.log(`                 --status             Check consult mode status`);
+    console.log(`                 --check              Dry-run preview`);
+    console.log(`  ${BOLD}extract${RESET}        Extract learnings from consult session`);
+    console.log(`                 --dry-run            Preview extraction`);
+    console.log(`                 --clean              Delete .squad/ after`);
+    console.log(`                 --accept-risks       Proceed despite license warnings`);
     console.log(`  ${BOLD}upstream${RESET}       Manage upstream Squad sources`);
     console.log(`                 add|remove|list|sync`);
 
@@ -713,12 +771,15 @@ async function main(): Promise<void> {
       initPrompt = readFileSync(filePath, 'utf-8').trim();
     } else {
       // Look for a positional string arg (not a flag, not 'init'/'hire')
-      const skipSet = new Set(['init', 'hire', '--global', '--mode', mode]);
+      const skipSet = new Set(['init', 'hire', '--global', '--mode', mode, '--no-extract']);
       const positional = args.find((a, i) => i > 0 && !a.startsWith('--') && !skipSet.has(a));
       if (positional) initPrompt = positional;
     }
 
-    await runInit(dest, { prompt: initPrompt });
+    // Check for --no-extract flag (disables extraction from consult sessions)
+    const extractionDisabled = args.includes('--no-extract');
+
+    await runInit(dest, { prompt: initPrompt, extractionDisabled });
     return;
   }
 
@@ -729,6 +790,18 @@ async function main(): Promise<void> {
       fatal('Run: squad link <team-repo-path>');
     }
     runLink(process.cwd(), linkTarget);
+    return;
+  }
+
+  if (cmd === 'consult') {
+    const { runConsult } = await import('./cli/commands/consult.js');
+    await runConsult(process.cwd(), args.slice(1));
+    return;
+  }
+
+  if (cmd === 'extract') {
+    const { runExtract } = await import('./cli/commands/extract.js');
+    await runExtract(process.cwd(), args.slice(1));
     return;
   }
 

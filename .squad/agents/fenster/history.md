@@ -967,3 +967,35 @@ The upstream.ts command was fully implemented but never wired into cli-entry.ts.
 
 - Semver prerelease identifiers are dot-separated after the hyphen: `1.2.3-preview.1` is valid, `1.2.3.1-preview` is not
 - The bump-build test suite copies the real script to a temp dir and patches `__dirname` — any regex changes must not break the patching mechanism
+### 2026-02-28 : Implement Phase 1 of Consult Mode
+**PRD:** `.squad/identity/prd-consult-mode.md`
+**Requested by:** James Sturtevant
+
+Implemented Phase 1 of consult mode — allows personal squad to "consult" on external projects without polluting either side.
+
+**Changes:**
+1. **SDK resolution.ts:**
+   - Added `consult?: boolean` field to `SquadDirConfig` interface
+   - Made `loadDirConfig()` public and updated to parse consult field
+   - Added `isConsultMode(config)` helper function
+
+2. **SDK index.ts:**
+   - Exported `loadDirConfig` and `isConsultMode` from resolution module
+
+3. **CLI commands/consult.ts (new):**
+   - `squad consult` — creates `.squad/` with `consult: true`, points to personal squad
+   - `--status` — shows current consult mode status
+   - `--check` — dry-run preview of what would happen
+   - Uses `git rev-parse --git-path info/exclude` for worktree/submodule compatibility
+   - Adds `.squad/` to `.git/info/exclude` (git-internal, never committed)
+
+4. **CLI cli-entry.ts:**
+   - Registered `consult` command in routing
+   - Added help text for `--help` flag
+   - Added to main help output under Team Management
+
+**Pattern followed:** `init-remote.ts` and `link.ts` for command structure. Dynamic import pattern for lazy loading.
+
+**Learning:** The `.git/info/exclude` approach is perfect for invisibility — it's git-internal and never shows up in diffs or status. Using `git rev-parse --git-path` is essential for worktrees/submodules where `.git` is a file, not a directory.
+
+**Next:** Phase 2 will add `squad extract` for bringing learnings back to personal squad.
