@@ -67,6 +67,9 @@ async function main(): Promise<void> {
     console.log(`             Examples: start --tunnel --yolo`);
     console.log(`                       start --tunnel --model claude-sonnet-4`);
     console.log(`                       start --tunnel --command "agency copilot"`);
+    console.log(`  ${BOLD}nap${RESET}        Context hygiene (compress, prune, archive .squad/ state)`);
+    console.log(`             Usage: nap [--deep] [--dry-run]`);
+    console.log(`             Flags: --deep (thorough cleanup), --dry-run (preview only)`);
     console.log(`  ${BOLD}help${RESET}       Show this help message`);
     console.log(`\nFlags:`);
     console.log(`  ${BOLD}--version, -v${RESET}  Print version`);
@@ -238,6 +241,20 @@ async function main(): Promise<void> {
     const squadFlags = ['start', '--tunnel', '--port', port.toString(), '--command', customCmd || ''].filter(Boolean);
     const copilotArgs = args.slice(1).filter(a => !squadFlags.includes(a));
     await runStart(process.cwd(), { tunnel: hasTunnel, port, copilotArgs, command: customCmd });
+    return;
+  }
+
+  if (cmd === 'nap') {
+    const { runNap, formatNapReport } = await import('./cli/core/nap.js');
+    const squadRoot = resolveSquad(process.cwd());
+    if (!squadRoot) {
+      fatal('No squad found. Run "squad init" first.');
+    }
+    const squadDir = path.join(squadRoot, '.squad');
+    const deep = args.includes('--deep');
+    const dryRun = args.includes('--dry-run');
+    const result = await runNap({ squadDir, deep, dryRun });
+    console.log(formatNapReport(result, !!process.env['NO_COLOR']));
     return;
   }
 
