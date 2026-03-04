@@ -1,22 +1,14 @@
 # Squad for Solo Developers
 
-**Try this to get a lean team:**
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
+**Try this:**
 ```
 I'm working alone on a side project — set up a minimal squad to help with code review and testing
 ```
 
-**Try this to start with essentials:**
-```
-Give me a 3-agent team: Lead for review, backend dev, and tester
-```
-
-Squad is great for solo devs: you get code review, test coverage, and architectural second opinions you'd never have otherwise. Start with 3 agents instead of 5.
-
----
-
-## 1. Why Squad Works for Solo Devs
-
-Squad is actually GREAT for solo devs. You get a code reviewer, tester, and architect you'd never have otherwise.
+Squad gives solo devs what they're missing: code review, test coverage, and architectural second opinions. Start with 3 agents instead of 5.
 
 ---
 
@@ -85,7 +77,7 @@ This is the safety net you don't have as a solo dev. Michael catches issues befo
 
 After Michael rejects Fredo's code for missing rate limiting, **it gets encoded as a skill**:
 
-`.ai-team/skills/auth-rate-limiting.md`:
+`.squad/skills/auth-rate-limiting.md`:
 
 ```markdown
 # Authentication Endpoints Must Be Rate-Limited
@@ -105,8 +97,8 @@ Next time any agent builds an auth feature, they read this skill first. The mist
 
 As a solo dev, you juggle dozens of context switches. Squad doesn't forget:
 
-- **Decisions** are logged. "Why did I use PostgreSQL instead of MongoDB?" — check `.ai-team/decisions.md`.
-- **Skills** capture patterns. "How do I structure FastAPI routes?" — check `.ai-team/skills/`.
+- **Decisions** are logged. "Why did I use PostgreSQL instead of MongoDB?" — check `.squad/decisions.md`.
+- **Skills** capture patterns. "How do I structure FastAPI routes?" — check `.squad/skills/`.
 - **Histories** track what each agent learned. Fredo knows your database schema after one session.
 
 You get back to a project after 3 weeks, and the team is still up to speed.
@@ -167,8 +159,8 @@ Michael's not always right, but having a second opinion is invaluable.
 
 ## Tips
 
-- **Start with 3–4 agents, not 5.** As a solo dev, you don't need a frontend and backend specialist if you're only building one layer.
-- **The Lead is your reviewer.** Even if you don't delegate tasks, use Michael to review your own code before committing.
-- **Skills are YOUR documentation.** After 10 sessions, your `.ai-team/skills/` directory is a custom knowledge base about your project.
-- **Agents work while you're thinking.** Give a vague task ("explore auth options"), and agents research in parallel while you handle something else.
-- **You get a testing discipline.** Kay writes tests you'd skip. Over time, your coverage goes up without extra effort.
+- **Start with 3–4 agents.** You don't need a frontend and backend specialist if you're only building one layer.
+- **The Lead is your reviewer.** Use them to review your own code before committing.
+- **Skills are YOUR documentation.** After 10 sessions, `.squad/skills/` is a custom knowledge base.
+- **Agents work while you're thinking.** Give a vague task and agents research in parallel.
+- **You get testing discipline.** The Tester writes tests you'd skip. Coverage goes up without extra effort.

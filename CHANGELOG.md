@@ -1,196 +1,49 @@
 # Changelog
 
-## v0.5.4 — 2026-02-28
+All notable changes to this project will be documented in this file.
 
-### Bug Fixes
-- **Ralph heartbeat cron disabled by default** — The 30-minute cron schedule in `squad-heartbeat.yml` consumed excessive GitHub Actions minutes for users with multiple Squad-enabled repos. Cron is now commented out by default. The heartbeat still triggers on issue/PR events for reactive triage. Users who need proactive polling can uncomment the cron or use `npx github:bradygaster/squad watch` locally. Fixes #158.
+## [Unreleased]
 
-### Upgrade Path
-- Run `npx github:bradygaster/squad upgrade` to get the updated heartbeat workflow. Existing cron schedules will be replaced with the disabled-by-default version.
+### Added — Remote Squad Mode (ported from @spboyer's [bradygaster/squad#131](https://github.com/bradygaster/squad/pull/131))
+- `resolveSquadPaths()` dual-root resolver — project-local vs team identity directories (#311)
+- `squad doctor` command — 9-check setup validation with emoji output (#312)
+- `squad link <path>` command — link a project to a remote team root (#313)
+- `squad init --mode remote` — initialize with remote team root config (#313)
+- `ensureSquadPathDual()` / `ensureSquadPathResolved()` — dual-root write guards (#314)
 
-## [0.5.3] — 2026-02-22
+Thanks to **Shayne Boyer** ([@spboyer](https://github.com/spboyer)) for the original remote mode design.
 
-### Fixed
+### Changed — Distribution & Versioning
+- **Distribution:** npm-only distribution channel. No more GitHub-native distribution (`npx github:bradygaster/squad`). Users now install via `npm install -g @bradygaster/squad-cli` or `npx @bradygaster/squad-cli` from npm registry.
+- **Semantic Versioning fix (#692):** Version format changed from `X.Y.Z.N-preview` to `X.Y.Z-preview.N` to comply with semantic versioning spec (prerelease identifier after patch, build metadata after prerelease). Example: `0.8.6-preview.1` instead of `0.8.6.1-preview`.
+- **Version transition:** Public repo final version was `0.8.5.1`. Private repo continues at `0.8.x` cadence (next publish after 0.8.17 is 0.8.18), following semver prerelease convention for development.
 
-- **Windows EPERM fallback during migrate-directory** (#135) — `safeRename()` catches EPERM/EACCES errors (VS Code file watchers hold handles on Windows), falls back to copy+delete (PR #149)
-- **`--version` now shows installed version** (#137) — `squad --version` displays both the package version and the installed coordinator version (PR #149)
-- **Content replacement in migrate-directory** (#134) — When migrating from `.ai-team/` to `.squad/`, file contents now get `.ai-team/` references replaced with `.squad/` (PR #151)
-- **compareSemver pre-release handling** — Versions with pre-release suffixes (e.g., `0.5.3-insiders`) now compare correctly during upgrade checks
+## [0.8.18-preview] - TBD
 
-### Changed
+### Added — Remote Squad Mode (ported from @spboyer's [bradygaster/squad#131](https://github.com/bradygaster/squad/pull/131))
+- `resolveSquadPaths()` dual-root resolver — project-local vs team identity directories (#311)
+- `squad doctor` command — 9-check setup validation with emoji output (#312)
+- `squad link <path>` command — link a project to a remote team root (#313)
+- `squad init --mode remote` — initialize with remote team root config (#313)
+- `ensureSquadPathDual()` / `ensureSquadPathResolved()` — dual-root write guards (#314)
 
-- **Guard workflow removed** (#150) — The `squad-main-guard.yml` workflow that blocked `.squad/` files from reaching main/preview has been removed; `.squad/` files now flow freely to all branches. Existing installations get the guard auto-deleted on next upgrade via a v0.5.4 migration (PR #152)
-
-## [0.5.2] — 2026-02-20
-
-### Fixed
-
-- **`upgrade --migrate-directory` exits early** (#125) — The directory rename step no longer calls `process.exit(0)`, so the full upgrade (squad.agent.md, workflows, .ai-team-templates) now runs after migration in one command
-- **`.slnx`, `.fsproj`, `.vbproj` not detected as .NET** (#124) — `detectProjectType()` now recognizes modern Visual Studio solution files and F#/VB.NET project files; repos using these get proper dotnet stub CI workflows instead of generic stubs
-- **Migrations hardcoded to `.ai-team/`** (#126 partial) — Migration steps (skills/, plugins/ creation, email scrub) and `.gitattributes` union rules now use the detected squad directory (`.squad/` or `.ai-team/`) so they work correctly after `--migrate-directory` runs
-
-## [0.5.1] — 2026-02-20
-
-### Added
-
-- **`squad watch` command** — Ralph local watchdog for persistent polling. Run `npx github:bradygaster/squad watch` to poll GitHub every 10 minutes for untriaged squad work, auto-triage, and assign @copilot to `squad:copilot` issues. Use `--interval` flag to customize polling interval (e.g., `squad watch --interval 5` for 5-minute polling). Runs until Ctrl+C.
-- **Project type detection** — Squad now detects your project's language and stack (JavaScript, Python, Java, Go, Rust, etc.)
-- **Git safety rules** — Enforces guardrails based on detected project type to prevent common mistakes and state corruption
-
-## [0.5.0] — 2026-02-20
-
-### Added
-
-- **`.ai-team/` renamed to `.squad/`** — Full directory rename with backward-compatible migration utilities for existing installations
-- **Decision lifecycle management** — Archival and versioning support for design decisions across the agent lifecycle
-- **Identity layer** — New `wisdom.md` and `now.md` files for agent context and temporal awareness
-- **ISO 8601 UTC timestamps** — Standardized timestamp format throughout (decision dates, agent updates, metadata)
-- **Cold-path extraction** — Refactored `squad.agent.md` to separate active decision paths from historical logic
-- **Skills export/import verification** — Enhanced import/export validation and documentation for agent skill extension
-- **Email scrubbing** — Automatic email removal during migration to prevent accidental PII commits
-
-## [0.4.2] — 2026-02-20
+### Changed — npm Distribution & Monorepo Structure
+- **Distribution:** Migrated from GitHub-native (`npx github:bradygaster/squad`) to npm packages (`npm install -g @bradygaster/squad-cli` / `npx @bradygaster/squad-cli`)
+- **Packages:** Independent versioning via @changesets/cli — `@bradygaster/squad-sdk` and `@bradygaster/squad-cli` evolve on separate cadences
+- **Structure:** Monorepo layout with workspace packages (SDK + CLI)
+- **Directory:** `.squad/` directory structure (migration from `.ai-team/`)
+- **Semantic Versioning:** All versions now comply with semver spec (prerelease format `X.Y.Z-preview.N`)
 
 ### Fixed
+- CLI entry point moved from `dist/index.js` to `dist/cli-entry.js`. If you reference the binary directly, update your path. `npx` and `npm` bin resolution is unchanged. (#187)
+- CRLF normalization: All parsers now normalize line endings before parsing. Windows users with `core.autocrlf=true` no longer get `\r`-tainted values. (#220, #221)
+- `process.exit()` removed from library-consumable functions. VS Code extensions can now safely import CLI functions without risking extension host termination. (#189)
+- Removed `.squad` branch protection guard (`squad-main-guard.yml`) — no longer needed with npm workspace `files` field exclusions
 
-- **`/agents` vs `/agent` CLI command** (#93) — README and install output now correctly reference `/agent` (the actual CLI command) instead of `/agents` (PR #100)
+### Internal
+- New utility: `normalizeEol()` in `src/utils/normalize-eol.ts`
+- New entry point: `src/cli-entry.ts` (CLI bootstrap separated from library exports)
+- Migrated to npm workspace publishing (`@bradygaster/squad-sdk`, `@bradygaster/squad-cli`)
+- Changesets infrastructure for independent package versioning
 
-### Added
 
-- **Insider Program infrastructure** (#94) — `insider` branch created with guard workflow enforcement; forbidden paths (`.ai-team/`, `.ai-team-templates/`, `team-docs/`, `docs/proposals/`) blocked from protected branches
-- **Branch content policy** — Formal decision document defining which files belong on main, preview, and insider branches; includes 5-step branch creation checklist
-- **Guard workflow update** — Added `docs/proposals/` to forbidden paths in `squad-main-guard.yml` (both `.github/workflows/` and `templates/workflows/`)
-- **Custom universe support** (#97) — Star Trek universe added by community contributor @codebytes
-
-## [0.4.1] — 2026-02-16
-
-### Fixed
-
-- **Ralph heartbeat workflow syntax** (#78) — Removed duplicate `issues:` trigger keys in `squad-heartbeat.yml`; combined into single trigger with both `closed` and `labeled` event types
-- **Community page links** (#77) — Fixed broken GitHub Discussions links (Discussions now enabled on repo)
-- **Task spawn UI** (#73) — Added role emoji to task description fields for visual consistency; 11 role patterns mapped to emoji (🏗️ Lead, 🔧 Backend, ⚛️ Frontend, 🧪 Tester, etc.)
-- **Stale workflow references in docs** — Updated all documentation to reference correct `squad-heartbeat.yml` filename (previously `ralph-heartbeat.yml`)
-- **Source repo .ai-team/ refreshed** (#67) — Squad's own team state updated to match current templates
-
-### Added
-
-- **Role emoji mapping** — Coordinator now includes role-based emoji in task descriptions for at-a-glance task list scanning
-- **Deprecation banner for .ai-team/ → .squad/ rename** (#70) — CLI and coordinator now warn users that v0.5.0 will rename `.ai-team/` to `.squad/`; links to migration tracking issue #69
-- **`squad upgrade --self` command** (#68) — New flag for refreshing squad repo's own `.ai-team/` from templates; preserves agent history, updates templates and skills
-
-## [0.4.0] — 2026-02-15
-
-### Added
-
-- **MCP tool discovery and use** (PR #11 by @csharpfritz) — Auto-discover available MCP tools, graceful degradation if service unavailable, tool usage in agent workflows
-- **User documentation improvements** (PR #16 by @csharpfritz) — Expanded guides, sample prompts, troubleshooting sections, release process documentation
-- **VS Code client compatibility** (PR #17 by @spboyer) — Full support for VS Code Copilot without code changes; runSubagent parallel execution, zero-change deployment
-- **Plugin marketplace concept** — Community skills from GitHub repos, auto-discover plugins, sandbox isolation
-- **Agent notifications system** — Trello cards, Teams webhooks, GitHub Discussions posts; agents can emit lifecycle events
-- **MCP integration for external services** — Auto-discover and integrate Trello, Azure, Notion, GitHub, Slack MCP tools; graceful degradation
-- **Progress signals for long-running work** — `[MILESTONE]` markers in agent output, coordinator relays progress to user
-- **Notification channels** — Trello cards for work items, Teams webhooks for milestones, GitHub Discussions for team updates
-- **Earned skills improvements** — Better confidence scoring, export/import polish, skill discovery from real work
-- **Universe expansion** — 11 new universes (Futurama, Seinfeld, The Office, Cowboy Bebop, FMA, Stranger Things, The Expanse, Arcane, Ted Lasso, Dune, Adventure Time); casting universe now 31 total (up from 20)
-- **Branch protection guard** (squad-main-guard.yml) — Prevents `.ai-team/` and internal `team-docs/` from shipping on main and preview branches
-- **Release process documentation** (docs/scenarios/release-process.md) — Complete step-by-step guide for maintainers: preview builds, PR workflows, full release lifecycle, guard testing, troubleshooting
-
-### Changed
-
-- VS Code is now fully compatible — zero code changes required; agents run identically on CLI and VS Code
-- Agent progress signals use `[MILESTONE]` markers for coordinator relay
-- 6 new GitHub Actions workflows added: squad-main-guard.yml, squad-heartbeat.yml, squad-issue-assign.yml, squad-label-enforce.yml, squad-triage.yml, sync-squad-labels.yml
-- Universe count: 20 → 31 (added 11 new universes)
-
-### Community
-
-- @csharpfritz: MCP tool discovery (#11), user documentation improvements (#16)
-- @spboyer: VS Code client compatibility (#17)
-- @essenbee2, @miketsui3a, @londospark: Issue contributions and feedback
-- External universe contributions: Futurama, Seinfeld, The Office, Cowboy Bebop, Full Metal Alchemist, Stranger Things, The Expanse, Arcane, Ted Lasso, Dune, Adventure Time casting universes
-
-## [0.3.0] — 2026-02-11
-
-### Added
-
-- **Per-agent model selection** — Cost-first model routing with 16-model catalog, role-to-model mapping, task-aware auto-selection, fallback chains, user overrides
-- **Ralph — Work Monitor** (PR #15 by @spboyer) — Built-in squad member with self-chaining work loop, heartbeat workflow (`squad-heartbeat.yml`), board status reporting, never-stop semantics
-- **@copilot Coding Agent integration** (PR #13 by @spboyer) — Three-tier capability profile, auto-assign workflow, `squad copilot` CLI subcommand
-- **Universe expansion** — Casting universe allowlist expanded from 14 to 20 (added Succession, Severance, Lord of the Rings, Attack on Titan, Doctor Who, Monty Python)
-- **"Milestones" rename** — Release planning units renamed from "sprints" to "milestones", aligning with GitHub Milestones
-
-### Changed
-
-- Test suite expanded from 92 to 118 tests
-- Emoji encoding fixes in test suite (8 mojibake strings corrected)
-- `squad.agent.md` significantly expanded with model selection, Ralph, @copilot sections
-- `index.js` updated with upgrade early-exit fix (refreshes workflows and agent.md)
-
-### Community
-
-- Two PRs from @spboyer (Shayne Boyer): Ralph work monitor (#15) and @copilot coding agent (#13)
-- New issues from @csharpfritz (#11 MCP, #16 user docs), @essenbee2 (#8 platform lock-in), @miketsui3a (#9 task tool naming), @londospark (#6 project boards)
-
-## [0.2.0] — 2026-02-09
-
-### Added
-
-#### Wave 2
-- **Tiered response modes** — Direct/Lightweight/Standard/Full modes replace uniform spawn overhead; agents can now be invoked with lightweight templates for simple tasks
-- **Smart upgrade with migrations** — `upgrade` detects installed version, reports delta, runs additive migrations (e.g., creating `.ai-team/skills/`); idempotent and safe to re-run
-- **Skills Phase 1** — agents read `SKILL.md` files from `.ai-team/skills/` before working; starter skills bundled on init
-- **Export CLI** (`squad export`) — exports squad to a portable `squad-export.json` snapshot including agents, casting state, and skills
-- **Ceremonies** — `.ai-team/ceremonies.md` config copied on init for team ritual definitions
-- **Worktree awareness** — coordinator documents worktree interaction for parallel issue work
-- **Scribe auto-commit** — decisions inbox pattern with Scribe agent for persistent memory management
-- **Decision consolidation** — shared `decisions.md` with inbox merge workflow
-- **Context caching** — coordinator optimizes context reads to reduce redundant file loads
-
-#### Wave 2.5 (PR #2 — @shayneboyer)
-- **GitHub Issues Mode** — `gh` CLI integration for issue-driven development with branch naming, PR submission, and review handling
-- **PRD Mode** — product requirements documents stored in `team.md`, decomposed into work items by Lead agent
-- **Human Team Members** — non-AI team members with badge, pause-on-route, stale reminders, and reviewer integration
-
-#### Wave 3
-- **Import CLI** (`squad import <file>`) — imports squad from export files with collision detection, `--force` archiving, and portable knowledge markers
-- **Skills Phase 2 (earned skills)** — agents can write `SKILL.md` files from real work; confidence lifecycle: low → medium → high
-- **Progressive history summarization** — agent histories split into portable knowledge vs. project-specific learnings during import
-- **Lightweight spawn template** — reduced-overhead agent invocation for simple tasks (no charter/history/decisions reads)
-
-### Changed
-- Test suite expanded from 27 to 92 tests covering all new features (export, import, smart upgrade, migrations, skills, prompt content validation)
-- `index.js` grew from 88 to 529 lines — now handles init, upgrade, export, import, migrations, and version stamping
-- `--help` output updated with export and import commands
-
-### Community
-- First external PR integrated (PR #2 by Shayne Boyer) — GitHub Issues Mode, PRD Mode, Human Team Members
-
-## [0.1.0] — 2026-02-08
-
-### Added
-- Coordinator agent (`squad.agent.md`) — orchestrates team formation and parallel work
-- Init command (`npx github:bradygaster/squad`) — copies agent file and templates, creates placeholder directories
-- Upgrade command (`npx github:bradygaster/squad upgrade`) — updates Squad-owned files without touching team state
-- Template system — charter, history, roster, routing, orchestration-log, run-output, raw-agent-output, scribe-charter, casting config (policy, registry, history)
-- Persistent thematic casting — agents get named from film universes (The Usual Suspects, Alien, Ocean's Eleven)
-- File ownership model — Squad owns `squad.agent.md` and `.ai-team-templates/`; users own `.ai-team/`
-- Parallel agent execution — coordinator fans out work to multiple specialists simultaneously
-- Memory architecture — per-agent `history.md`, shared `decisions.md`, session `log/`
-- Reviewer protocol — agents with review authority can reject work and reassign
-- Scribe agent — silent memory manager, merges decisions, maintains logs
-- `--version` / `-v` flag
-- `--help` / `-h` flag and `help` subcommand
-- CI pipeline (GitHub Actions) — tests on push/PR to main and dev
-- Test suite — 27 tests covering init, re-init, upgrade, flags, error handling, and edge cases
-
-### What ships
-- `index.js` — the CLI entry point
-- `.github/agents/squad.agent.md` — the coordinator agent
-- `templates/**/*` — 11 template files (charter.md, history.md, roster.md, routing.md, orchestration-log.md, run-output.md, raw-agent-output.md, scribe-charter.md, casting-policy.json, casting-registry.json, casting-history.json)
-
-These are the only files distributed via `npx github:bradygaster/squad`. Defined by the `files` array in `package.json`.
-
-### What doesn't ship
-- `.ai-team/` is NOT in the package — it is created by Copilot at runtime when agents form a team
-- `test/`, `.ai-team/`, `.github/workflows/` — development and team artifacts stay in the source repo only
-- Agent knowledge (history, decisions, casting state) — generated per-project, never bundled

@@ -1,21 +1,14 @@
 # Issue-Driven Development with Squad
 
-**Try this to link to your repo:**
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
+**Try this:**
 ```
 Connect to myorg/recipe-app
 ```
 
-**Try this to see your backlog:**
-```
-Show the backlog
-```
-
-**Try this to start implementation:**
-```
-Work on issue #7
-```
-
-End-to-end workflow: connect to a repo, pick issues from backlog, let agents create branches, implement, open PRs, handle review feedback, and close issues.
+End-to-end workflow: connect to a repo, pick issues from backlog, let agents create branches, implement, open PRs, handle review feedback, and close issues. See also [GitHub Issues Mode](../features/github-issues.md) for detailed guidance.
 
 **Prerequisite:** The `gh` CLI must be installed and authenticated (`gh auth login`).
 
@@ -181,27 +174,27 @@ Each agent creates its own branch and works independently. Both PRs open when ag
 
 ## Full Lifecycle at a Glance
 
-```
-Connect      →  "connect to myorg/recipe-app"
-Browse       →  "show the backlog"
-Assign       →  "work on #15"
-  └─ Agent creates branch, implements, opens PR
-Review       →  "there's review feedback on PR #22"
-  └─ Agent reads comments, pushes fixes
-Merge        →  "merge PR #22"
-  └─ PR merged, issue closed
-Status       →  "what's left?"
-  └─ Updated backlog
-Parallel     →  "work on #12 and #18"
-  └─ Multiple agents, multiple branches, simultaneously
+```mermaid
+graph LR
+    A["Connect<br/>connect to repo"] --> B["Browse<br/>show backlog"]
+    B --> C["Assign<br/>work on issue"]
+    C --> D["Branch/Implement<br/>Agent creates & codes"]
+    D --> E["Review<br/>Handle feedback"]
+    E --> F["Merge<br/>PR merged"]
+    F --> G["Status<br/>Updated backlog"]
+    G --> H["Parallel<br/>Work on multiple"]
+    
+    style D fill:#e1f5ff
+    style E fill:#f3e5f5
 ```
 
 ---
 
 ## Tips
 
-- **You don't pick the agent.** Squad routes each issue to the agent whose expertise matches — backend bugs go to the backend agent, UI issues go to the frontend agent.
-- **Agents name branches with the issue number.** Branch names follow the pattern `{number}-{slugified-title}`, making them easy to find in `git branch`.
-- **PRs auto-link to issues.** The PR description includes `Closes #N`, so merging automatically closes the corresponding issue.
-- **Review feedback is incremental.** Agents push new commits to the existing branch — no force-pushes, no new PRs.
-- **Decisions accumulate during issue work.** Agents record architectural decisions while implementing. These carry forward to future issues, so the team stays consistent across the backlog.
+- **You don't pick the agent.** Squad routes each issue to the agent whose expertise matches.
+- **Agents name branches with the issue number.** Pattern: `{number}-{slugified-title}`.
+- **PRs auto-link to issues.** The PR body includes `Closes #N`, so merging closes the issue.
+- **Review feedback is incremental.** Agents push new commits — no force-pushes, no new PRs.
+- **Decisions accumulate during issue work.** Agents record choices that carry forward across the backlog.
+- **Work multiple issues in parallel.** Say `"Work on #12 and #18"` and each agent gets its own branch.

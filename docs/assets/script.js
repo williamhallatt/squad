@@ -10,12 +10,26 @@ function toggleTheme(){
   html.setAttribute("data-theme",n);
   localStorage.setItem("squad-theme",n);
   updateThemeBtn();
+  // Re-render mermaid diagrams with updated theme
+  if(typeof mermaid!=="undefined"){
+    mermaid.initialize({startOnLoad:false,theme:n==="light"?"default":"dark"});
+    mermaid.run();
+  }
 }
 function updateThemeBtn(){
   var t=document.documentElement.getAttribute("data-theme");
   var b=document.getElementById("theme-btn");
   if(!b) return;
   b.textContent=t==="dark"?"\u2600\uFE0F":t==="light"?"\uD83C\uDF19":"\uD83D\uDCBB";
+  syncHljsTheme();
+}
+function syncHljsTheme(){
+  var t=document.documentElement.getAttribute("data-theme");
+  var dark=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme:dark)").matches);
+  var ld=document.getElementById("hljs-light");
+  var dd=document.getElementById("hljs-dark");
+  if(ld) ld.disabled=dark;
+  if(dd) dd.disabled=!dark;
 }
 function toggleSidebar(){
   document.getElementById("sidebar").classList.toggle("open");

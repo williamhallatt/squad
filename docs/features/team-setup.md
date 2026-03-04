@@ -1,5 +1,8 @@
 # Team Setup & Init Mode
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to initialize for a specific stack:**
 ```
 Set up a team for a React + Node.js API with PostgreSQL
@@ -21,19 +24,19 @@ Squad analyzes your project and proposes a team roster with 3-7 members tailored
 
 ## How Init Works
 
-When you first run Squad in a repository, it doesn't impose a team — it proposes one. The init flow analyzes your project, suggests roles and members, waits for your confirmation, then creates the `.ai-team/` directory structure and installs the crew.
+When you first run Squad in a repository, it doesn't impose a team — it proposes one. The init flow analyzes your project, suggests roles and members, waits for your confirmation, then creates the `.squad/` directory structure and installs the crew.
 
 ## How Init Works
 
 1. **Discovery** — Squad scans your repository: language distribution, file structure, test frameworks, dependencies, existing workflows.
 2. **Proposal** — Based on what it finds, Squad proposes a team roster with 3-7 members and their roles.
 3. **Confirmation** — You review the proposal and can accept as-is, add members, remove members, or change roles.
-4. **Creation** — Squad writes `.ai-team/team.md`, creates agent directories under `.ai-team/agents/{member}/`, and sets up the coordinator.
+4. **Creation** — Squad writes `.squad/team.md`, creates agent directories under `.squad/agents/{member}/`, and sets up the coordinator.
 
 ### File Structure Created
 
 ```
-.ai-team/
+.squad/
 ├── team.md                         # Team roster
 ├── routing.md                      # Work routing rules
 ├── decisions.md                    # Team memory (directives)
@@ -65,7 +68,7 @@ When you first run Squad in a repository, it doesn't impose a team — it propos
 
 ## Customizing After Init
 
-You can modify `.ai-team/team.md` directly or ask the coordinator:
+You can modify `.squad/team.md` directly or ask the coordinator:
 
 > "Add a security specialist to the team"
 
@@ -78,7 +81,7 @@ The coordinator will:
 
 The coordinator will:
 1. Remove the member from `team.md`
-2. Archive their agent directory (moves to `.ai-team/agents/.archived/{member}/`)
+2. Archive their agent directory (moves to `.squad/agents/.archived/{member}/`)
 3. Update routing rules
 
 ## Default Team Composition
@@ -100,7 +103,7 @@ For most projects, Squad proposes:
 | Command | When to Use |
 |---------|------------|
 | `init` | First-time setup in a new repository |
-| `upgrade` | Existing `.ai-team/` — updates templates, adds new members, migrates config |
+| `upgrade` | Existing `.squad/` — updates templates, adds new members, migrates config |
 
 Running `init` on an existing Squad repository prompts for upgrade mode automatically.
 

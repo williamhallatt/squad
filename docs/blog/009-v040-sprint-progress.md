@@ -7,6 +7,9 @@ status: published
 
 # v0.4.0 Sprint Progress — Platform Parity, Client Compatibility, and Project Boards
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 Squad v0.4.0 brings **platform parity research complete**, **client compatibility matrix published**, **agent progress updates designed**, and **community features greenlit**. This sprint expanded what's possible on VS Code and locked in the patterns for long-running work visibility.
 
 ## Completed Work
@@ -20,12 +23,12 @@ We proved what intuition suggested: **Squad works identically on VS Code as it d
 - **Sub-agent spawning:** VS Code's `runSubagent` tool maps 1:1 to CLI's `task` tool. Agents spawn synchronously individually, but multiple agents in the same turn run in parallel — functionally equivalent to CLI's `mode: "background"` with concurrent execution.
 - **Model selection:** VS Code's Phase 1 MVP accepts the session model. Phase 2 (v0.5.0) will support custom agent frontmatter for static per-agent routing. Cost optimization deferred but not blocked.
 - **File discovery:** `.github/agents/squad.agent.md` auto-discovers and hot-reloads on VS Code. No restart needed.
-- **`.ai-team/` access:** Full read/write support, workspace-scoped. First write may prompt for approval (VS Code security); subsequent writes automatic.
+- **`.squad/` access:** Full read/write support, workspace-scoped. First write may prompt for approval (VS Code security); subsequent writes automatic.
 - **SQL tool:** Not available on VS Code. This is documented; workflows should detect platform and adapt.
 
 **Workarounds documented:** `runSubagent` has no `model` or `background` parameters. Workaround: spawn multiple subagents in one turn for parallelism; batch Scribe last (tolerable cost since Scribe is Haiku-tier work).
 
-**See:** [docs/scenarios/client-compatibility.md](../scenarios/client-compatibility.md) — full investigation results, platform comparison table, degradation plan, and platform adaptation guide.
+<!-- TODO: Document client compatibility matrix in scenarios when complete -->
 
 ### 2. Client Compatibility Matrix Shipped
 
@@ -38,7 +41,7 @@ We published the first production compatibility matrix covering CLI, VS Code, Je
 | Sub-agent spawning | ✅ | ✅ | ⚠️ | ❌ |
 | Per-spawn model selection | ✅ | ⚠️ | ? | ? |
 | Background/async execution | ✅ | ⚠️ | ? | ? |
-| `.ai-team/` file access | ✅ | ✅ | ? | ? |
+| `.squad/` file access | ✅ | ✅ | ? | ? |
 | SQL tool | ✅ | ❌ | ❌ | ❌ |
 
 **Also documented:** Platform adaptation guide for Squad developers. Coordinator instructions for platform detection (CLI mode vs VS Code mode vs fallback mode).
@@ -70,19 +73,18 @@ Coordinator:
 3. Extracts new milestones, relays to user in real-time
 4. Falls back to "still working" if no milestones (graceful degradation)
 
-**For v0.4.0:** Coordinator polling loop + `.ai-team/skills/progress-signals/SKILL.md` documentation.
+**For v0.4.0:** Coordinator polling loop + `.squad/skills/progress-signals/SKILL.md` documentation.
 
 **For v0.5.0+:** Customizable polling cadence, emoji matching to agent persona, milestone filtering for quiet mode.
 
-**See:** [team-docs/proposals/022a-agent-progress-updates.md](../../team-docs/proposals/022a-agent-progress-updates.md) — full design, UX mockups, success criteria, risk assessment.
+<!-- TODO: Link to agent progress updates proposal when documentation is complete -->
 
 ### 4. SSH Bug Documented and Closed (#30)
 
-Issue: `npx github:bradygaster/squad` appears to hang during install. npm resolves `github:` packages via git+ssh, and if no SSH agent is running, git prompts for a passphrase — but npm hides the prompt.
+Issue: `npx github:bradygaster/squad` previously appeared to hang during install. This is no longer relevant with npm-only distribution.
 
-**Fix documented:** 
-- Start SSH agent first: `ssh-add`
-- Or install with visible prompt: `npx --progress=false github:bradygaster/squad`
+**Current install method:**
+- Install globally: `npm install -g @bradygaster/squad-cli`
 
 **Status:** Issue closed, solution in README and troubleshooting docs.
 

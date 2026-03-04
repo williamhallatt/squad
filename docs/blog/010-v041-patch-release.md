@@ -10,6 +10,9 @@ hero: "v0.4.1 lands five targeted fixes for logging, team setup, CLI UX, docs fo
 
 # v0.4.1: Quick Quality Patch
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 > _One week after 0.4.0, we shipped targeted fixes for the issues users hit first. Scribe now logs. Team templates match workflows. The CLI error noise is gone. Docs are clean. And your blog posts appear in order._
 
 ## What's Fixed
@@ -35,7 +38,7 @@ We committed to responsive patches: user-reported issues → fix within 48 hours
 
 **Install v0.4.1:**
 ```
-npx github:bradygaster/squad@latest
+npm install -g @bradygaster/squad-cli@latest
 ```
 
 or upgrade if you have it:

@@ -1,6 +1,9 @@
 # Squad in VS Code
 
-Squad is fully supported in VS Code (v0.4.0+). Your team runs identically to the CLI, with the same `.ai-team/` state, same agents, same decisions — but with VS Code-specific tooling and constraints.
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
+Squad is fully supported in VS Code (v0.4.0+). Your team runs identically to the CLI, with the same `.squad/` state, same agents, same decisions — but with VS Code-specific tooling and constraints.
 
 This guide covers what's different, what's the same, and when to use CLI vs VS Code.
 
@@ -21,14 +24,14 @@ This guide covers what's different, what's the same, and when to use CLI vs VS C
 **Option A: Initialize with CLI (recommended)**
 
 ```bash
-npm i github:bradygaster/squad
+npm install -g @bradygaster/squad-cli
 ```
 
-Creates `.github/agents/squad.agent.md` and `.ai-team-templates/`. Then open VS Code and select **Squad** from the agent picker.
+Creates `.github/agents/squad.agent.md` and `.squad-templates/`. Then open VS Code and select **Squad** from the agent picker.
 
 **Option B: Fresh in VS Code**
 
-Open Copilot in VS Code, select **Squad** from `/agents`. Squad detects it's running in VS Code and bootstraps normally. The `.ai-team/` directory is created on first run.
+Open Copilot in VS Code, select **Squad** from `/agents`. Squad detects it's running in VS Code and bootstraps normally. The `.squad/` directory is created on first run.
 
 ---
 
@@ -55,7 +58,7 @@ Agents launch in the same turn and run in parallel, but block as a group. Result
 
 ### SQL Tool Not Available
 
-SQL unavailable in VS Code agents. Workflows needing SQL should live in CLI, or use file-based state (JSON in `.ai-team/state/`).
+SQL unavailable in VS Code agents. Workflows needing SQL should live in CLI, or use file-based state (JSON in `.squad/state/`).
 
 ### File Writes May Prompt for Approval
 
@@ -65,7 +68,7 @@ VS Code security feature: approve file modifications once with "Always allow in 
 
 ## What's the Same
 
-### Same `.ai-team/` State
+### Same `.squad/` State
 
 Initialize in CLI, use in VS Code, or vice versa. Team roster, decisions, histories are identical across both.
 
@@ -79,7 +82,7 @@ Multiple agents in one turn → all run in parallel. Equivalent throughput to CL
 
 ### Full File Access (Workspace-Scoped)
 
-Read/write your entire workspace and `.ai-team/` directory. Cannot reach outside workspace.
+Read/write your entire workspace and `.squad/` directory. Cannot reach outside workspace.
 
 ### MCP Tools Inherited
 
@@ -105,13 +108,13 @@ Check the model picker at top of chat if agents seem slow or expensive — switc
 - **GitHub.com (web)** — Untested. Copilot Chat on GitHub.com doesn't support Squad.
 - **Custom agent model selection** — Phase 2 future feature.
 
-See [Client Compatibility Matrix](../scenarios/client-compatibility.md) for full platform comparison.
+See [Getting Started](../get-started/first-session.md) for your first VS Code session.
 
 ---
 
 ## See Also
 
-- [Client Compatibility Matrix](../scenarios/client-compatibility.md) — Feature comparison: CLI, VS Code, JetBrains, GitHub.com
+- [Getting Started](../get-started/installation.md) — Installation and setup guide
 - [Parallel Execution](parallel-execution.md) — How Squadron fan-outs agents
 - [Model Selection](model-selection.md) — Cost-first routing strategy
-- [First Session Walkthrough](../tour-first-session.md) — Getting started with Squad
+- [CLI Shell Commands](../cli/shell.md) — Shell commands and features

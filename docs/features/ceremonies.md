@@ -1,5 +1,8 @@
 # Ceremonies
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to schedule team ceremonies:**
 ```
 Schedule a daily standup at 9am and a sprint retro every Friday
@@ -97,7 +100,7 @@ The ceremony remains enabled for future tasks.
 
 - Design reviews prevent agents from building conflicting implementations. Let them run on multi-agent tasks.
 - Retros produce decisions that get written to `decisions.md` — they improve future work, not just diagnose the current failure.
-- Ceremony config lives in `.ai-team/ceremonies.md`. You can edit it directly if you prefer.
+- Ceremony config lives in `.squad/ceremonies.md`. You can edit it directly if you prefer.
 - Ceremonies work well with [human team members](human-team-members.md) — add a human as a participant for approval gates.
 
 ## Sample Prompts

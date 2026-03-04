@@ -1,5 +1,8 @@
 # Work Routing
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to set domain-specific routing:**
 ```
 Route all database-related work to Basher
@@ -35,7 +38,7 @@ Coordinator assigns directly to Fenster. No lookup required.
 
 ### 2. Domain Routing
 
-The coordinator checks `.ai-team/routing.md` for pattern matches:
+The coordinator checks `.squad/routing.md` for pattern matches:
 
 ```markdown
 ## Routing Table
@@ -53,7 +56,7 @@ When work involves `src/api/auth.ts`, it routes to Backend automatically.
 
 ### 3. Skill-Aware Routing
 
-If no domain match, the coordinator checks `.ai-team/skills/` for capability fit:
+If no domain match, the coordinator checks `.squad/skills/` for capability fit:
 
 ```markdown
 # authentication.md
@@ -66,7 +69,7 @@ Work tagged with authentication routes to Backend or Lead based on task type (im
 
 ## The Routing Table
 
-`.ai-team/routing.md` is the canonical routing manifest. It's structured as:
+`.squad/routing.md` is the canonical routing manifest. It's structured as:
 
 ```markdown
 # Work Routing
@@ -100,7 +103,7 @@ Coordinator adds to routing.md:
 | `migrations/**`, `*.sql` | Backend | Database schema changes |
 ```
 
-Or edit `.ai-team/routing.md` directly.
+Or edit `.squad/routing.md` directly.
 
 ## Routing Ambiguity
 
@@ -126,11 +129,11 @@ Some tasks require multiple agents:
 
 > "Fenster, implement the API. Hockney, write the tests."
 
-Coordinator spawns both agents in parallel. They work independently and coordinate via the shared `.ai-team/` state.
+Coordinator spawns both agents in parallel. They work independently and coordinate via the shared `.squad/` state.
 
 ## Routing Logs
 
-The coordinator logs routing decisions to `.ai-team/orchestration-log/`:
+The coordinator logs routing decisions to `.squad/orchestration-log/`:
 
 ```
 [2024-01-15 14:23:10] ROUTE: Issue #42 → Backend (pattern: src/api/**)

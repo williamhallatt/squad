@@ -10,6 +10,9 @@ hero: "Jeff Fritz published the first public video of Squad — a full demo buil
 
 # First Video Coverage: Jeff Fritz's Squad Demo
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 > _Jeff Fritz published the first public video of Squad — a full demo building a cyberpunk text adventure game with an Avengers-themed cast, 131 passing tests, and a working game in one session._
 
 ## What Happened
@@ -30,7 +33,7 @@ The video covers several of Squad's core features in practice:
 - **Design review** — Jeff narrated the delegation step where agents reviewed the design before writing code. He called this out as a distinct feature, not an obstacle.
 - **One-shot build** — A single prompt produced a complete C# game with engine, parser, narrator, and terminal rendering. Jeff didn't iterate to get it working.
 - **131 tests** — All passing on the first build. Jeff used this as his proof point for Squad's output quality.
-- **`.ai-team/` folder exploration** — Jeff opened the `.ai-team/` directory and showed the decision log, agent files, and project structure to viewers. He told them to explore it.
+- **`.squad/` folder exploration** — Jeff opened the `.squad/` directory and showed the decision log, agent files, and project structure to viewers. He told them to explore it.
 - **"These are all markdown files"** — Jeff said this twice. The fact that Squad's configuration is plain markdown — not proprietary config — registered as a trust signal.
 - **"Everything saved in Markdown and JSON"** — Squad's transparency was a recurring theme. Viewers can inspect everything the agents produce.
 - **Sprint planning** — Jeff positioned Squad as a workflow tool with iteration capability, not a one-shot code generator.

@@ -1,25 +1,13 @@
-# OS
-.DS_Store
-Thumbs.db
-
-# Editor
-.vscode/
-*.swp
-*.swo
-
-# Node (if we add tooling later)
 node_modules/
-
-# Built docs site (generated, not committed)
-_site/
-
-# Squad team state ΓÇö committed on dev and feature branches,
-# blocked from main/preview by squad-main-guard.yml workflow.
-# ΓÜá∩╕Å NEVER merge .ai-team/ into main or preview.
-# The guard workflow will fail the PR if you try.
-
-# Squad internal templates (not distributed)
-.ai-team-templates/
-
-# Local report artifacts (daily reports, feasibility studies, etc.)
-reports/
+dist/
+.env
+*.tsbuildinfo
+coverage/
+.vscode/
+*.log
+# Squad: ignore generated logs
+.squad/orchestration-log/
+.squad/log/
+.test-cli-*
+# Docs site generated files
+docs/dist/

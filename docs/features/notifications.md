@@ -1,5 +1,8 @@
 # Squad Pings You
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to get notified on completion:**
 ```
 Notify me when the build finishes
@@ -374,7 +377,7 @@ Use the `NOTIFY_*` environment variables (see Configuration above) to disable no
 
 ## Architecture Notes
 
-The `human-notification` skill lives in `.ai-team/skills/squad-human-notification/SKILL.md`. Agents read it before working and decide whether to ping you. You can edit the skill directly if you want to:
+The `human-notification` skill lives in `.squad/skills/squad-human-notification/SKILL.md`. Agents read it before working and decide whether to ping you. You can edit the skill directly if you want to:
 
 - Add custom notification logic for your team
 - Change when agents decide to ping (e.g., always notify on errors)
@@ -478,7 +481,7 @@ Your endpoint receives POST requests with agent name, message, and context.
 
 - [MCP Setup Guide](./mcp.md) — detailed MCP configuration walkthrough
 - [Skills System](./skills.md) — learn how skills encode reusable knowledge
-- [Copilot Environment Setup](../guide.md) — how to configure MCP
+- [MCP Documentation](./mcp.md) — how to configure Model Context Protocol
 - [Model Selection](./model-selection.md) — customize agent behavior per role
 
 ## Sample Prompts

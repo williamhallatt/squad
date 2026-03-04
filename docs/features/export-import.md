@@ -1,5 +1,8 @@
 # Export & Import
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to make your team portable:**
 ```
 Export my team to a file — I want to use them on another project
@@ -17,7 +20,7 @@ Squad teams are portable. Export your trained agents, casting state, skills, and
 ## Export
 
 ```bash
-npx github:bradygaster/squad export
+squad export
 ```
 
 Creates `squad-export.json` in the current directory — a portable snapshot of your entire team: agents, casting state, skills, and decisions.
@@ -25,7 +28,7 @@ Creates `squad-export.json` in the current directory — a portable snapshot of 
 ### Custom output path
 
 ```bash
-npx github:bradygaster/squad export --out ./backups/my-team.json
+squad export --out ./backups/my-team.json
 ```
 
 ### What's included
@@ -38,24 +41,24 @@ npx github:bradygaster/squad export --out ./backups/my-team.json
 | **Skills** | ✅ **All earned skills export with the team** |
 | Decisions | ✅ |
 
-> **Skills are portable**: When you export a team, all earned skills from `.ai-team/skills/` are included in the JSON manifest. After importing, skills are immediately available to all agents — no loss of knowledge.
+> **Skills are portable**: When you export a team, all earned skills from `.squad/skills/` are included in the JSON manifest. After importing, skills are immediately available to all agents — no loss of knowledge.
 
 ---
 
 ## Import
 
 ```bash
-npx github:bradygaster/squad import squad-export.json
+squad import squad-export.json
 ```
 
-Imports the snapshot into the current repo's `.ai-team/` directory.
+Imports the snapshot into the current repo's `.squad/` directory.
 
 ### Collision detection
 
-If `.ai-team/` already exists, Squad warns you and stops. To archive the existing team and replace it:
+If `.squad/` already exists, Squad warns you and stops. To archive the existing team and replace it:
 
 ```bash
-npx github:bradygaster/squad import squad-export.json --force
+squad import squad-export.json --force
 ```
 
 The `--force` flag moves your current team to an archive before importing. Nothing is deleted.
@@ -75,10 +78,10 @@ Imported agents bring their skills and general knowledge without assuming your p
 
 | Scenario | Command |
 |----------|---------|
-| Back up before a major refactor | `npx github:bradygaster/squad export --out ./backup.json` |
+| Back up before a major refactor | `squad export --out ./backup.json` |
 | Share a trained team with a colleague | Export, send the JSON, they import — **skills included** |
 | Move a team to a different repo | Export from old repo, import into new repo — **skills travel with agents** |
-| Reset and start fresh | Export as backup, delete `.ai-team/`, re-init |
+| Reset and start fresh | Export as backup, delete `.squad/`, re-init |
 
 ---
 
@@ -87,7 +90,7 @@ Imported agents bring their skills and general knowledge without assuming your p
 - Export before running `upgrade` if you want a rollback point.
 - The export file is JSON — you can inspect it to see exactly what your team knows.
 - Imported agents retain their names and universe. They won't be renamed.
-- Commit your `.ai-team/` directory after importing so the team is available to everyone who clones the repo.
+- Commit your `.squad/` directory after importing so the team is available to everyone who clones the repo.
 - **Skills are fully portable** — all earned skills export and import with perfect fidelity. No manual copying needed.
 
 ## Sample Prompts
@@ -102,7 +105,7 @@ Creates a `squad-export.json` snapshot of the entire team in the current directo
 import squad-export.json into this repo
 ```
 
-Imports a team snapshot into the current project's `.ai-team/` directory.
+Imports a team snapshot into the current project's `.squad/` directory.
 
 ```
 what was included in that export?
@@ -120,4 +123,4 @@ Creates a lightweight export with agent charters and skills but minimal history.
 import with --force and archive the current team
 ```
 
-Overwrites the existing `.ai-team/` directory after archiving it as a backup.
+Overwrites the existing `.squad/` directory after archiving it as a backup.

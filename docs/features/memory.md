@@ -1,5 +1,8 @@
 # Memory System
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to query team decisions:**
 ```
 What decisions has the team made about testing strategy?
@@ -27,7 +30,7 @@ Squad's memory is layered. Each layer serves a different purpose, and knowledge 
 
 ## Personal Memory: `history.md`
 
-Each agent has its own history file at `.ai-team/agents/{name}/history.md`. After every session, agents append what they learned — architecture decisions, conventions, file paths, user preferences.
+Each agent has its own history file at `.squad/agents/{name}/history.md`. After every session, agents append what they learned — architecture decisions, conventions, file paths, user preferences.
 
 **Only that agent reads its own history.** This means each team member builds specialized knowledge about their domain.
 
@@ -41,7 +44,7 @@ Histories grow over time. When an agent's `history.md` exceeds ~12KB, older entr
 
 ## Shared Memory: `decisions.md`
 
-Team-wide decisions live in `.ai-team/decisions.md`. **Every agent reads this before working.** This is the team's shared brain.
+Team-wide decisions live in `.squad/decisions.md`. **Every agent reads this before working.** This is the team's shared brain.
 
 Decisions are captured three ways:
 
@@ -50,7 +53,7 @@ Decisions are captured three ways:
 When an agent makes a decision during a task, it writes to the inbox:
 
 ```
-.ai-team/decisions/inbox/{agent-name}-{slug}.md
+.squad/decisions/inbox/{agent-name}-{slug}.md
 ```
 
 ### 2. From user directives
@@ -69,14 +72,14 @@ These go directly into `decisions.md`.
 
 The Scribe agent (a silent team member) periodically:
 
-1. Reads all entries from `.ai-team/decisions/inbox/`
+1. Reads all entries from `.squad/decisions/inbox/`
 2. Merges them into the canonical `decisions.md`
 3. Deduplicates overlapping decisions
 4. Propagates updates to affected agents
 
 ### Decision archiving
 
-As your project grows, `decisions.md` accumulates hundreds of blocks. Stale sprint artifacts, completed analysis docs, and one-time planning fragments consume context window space without adding value. When this happens, old decisions are archived to `.ai-team/decisions-archive.md` — preserved for reference but no longer loaded into agent context.
+As your project grows, `decisions.md` accumulates hundreds of blocks. Stale sprint artifacts, completed analysis docs, and one-time planning fragments consume context window space without adding value. When this happens, old decisions are archived to `.squad/decisions-archive.md` — preserved for reference but no longer loaded into agent context.
 
 Active decisions (ongoing policies, user preferences, current architecture) stay in `decisions.md`. Agents always read the lean, current shared brain.
 
@@ -84,7 +87,7 @@ Active decisions (ongoing policies, user preferences, current architecture) stay
 
 ## Skills
 
-Reusable knowledge files at `.ai-team/skills/{skill-name}/SKILL.md`. See [Skills System](skills.md) for details.
+Reusable knowledge files at `.squad/skills/{skill-name}/SKILL.md`. See [Skills System](skills.md) for details.
 
 Skills differ from decisions — decisions are project policies ("use PostgreSQL"), while skills are transferable techniques ("how to set up CI with GitHub Actions").
 
@@ -103,7 +106,7 @@ Skills differ from decisions — decisions are project policies ("use PostgreSQL
 ## Memory Architecture
 
 ```
-.ai-team/
+.squad/
 ├── decisions.md                          # Shared — all agents read this
 ├── decisions/inbox/                      # Drop-box for parallel writes
 │   ├── kane-api-versioning.md
@@ -124,7 +127,7 @@ Skills differ from decisions — decisions are project policies ("use PostgreSQL
 
 ## Tips
 
-- **Commit `.ai-team/`** — anyone who clones the repo gets the team with all their accumulated knowledge.
+- **Commit `.squad/`** — anyone who clones the repo gets the team with all their accumulated knowledge.
 - Directives ("always...", "never...") are the fastest way to shape team behavior. Use them liberally.
 - If an agent keeps making the same mistake, check `decisions.md` — the relevant convention might be missing.
 - You can edit `decisions.md` and `history.md` files directly. They're plain Markdown.

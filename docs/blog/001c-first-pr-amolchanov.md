@@ -8,12 +8,15 @@ status: published
 hero: "amolchanov shipped the worktree foundation in PR #1. We never wrote it up. This fixes that."
 ---
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 amolchanov shipped the worktree foundation in PR #1. We never wrote it up. This fixes that.
 
 ## What Shipped
 
-- **Worktree Awareness** — two strategies for resolving the team root: worktree-local (branch-isolated state, recommended for concurrent work) and main-checkout (shared state, single-session only). Auto-detection checks if `.ai-team/` exists in the current worktree, falls back to main checkout if not. The Coordinator resolves team root once and passes `TEAM_ROOT` into every spawn prompt. *Built by [@amolchanov](https://github.com/amolchanov).*
-- **Scribe Auto-Commit** — Scribe commits `.ai-team/` changes after every session with detailed `docs(ai-team):` conventional commit messages. Itemizes what was logged, merged, and propagated. *Built by [@amolchanov](https://github.com/amolchanov).*
+- **Worktree Awareness** — two strategies for resolving the team root: worktree-local (branch-isolated state, recommended for concurrent work) and main-checkout (shared state, single-session only). Auto-detection checks if `.squad/` exists in the current worktree, falls back to main checkout if not. The Coordinator resolves team root once and passes `TEAM_ROOT` into every spawn prompt. *Built by [@amolchanov](https://github.com/amolchanov).*
+- **Scribe Auto-Commit** — Scribe commits `.squad/` changes after every session with detailed `docs(ai-team):` conventional commit messages. Itemizes what was logged, merged, and propagated. *Built by [@amolchanov](https://github.com/amolchanov).*
 - **Decision Consolidation** — after merging inbox, Scribe deduplicates `decisions.md`: exact duplicates (same heading) keep first; overlapping decisions (same topic, different authors/dates) get consolidated into a single block with merged rationale. *Built by [@amolchanov](https://github.com/amolchanov).*
 - **Merge-safe append-only files** — `.gitattributes` merge=union rules for `decisions.md`, `history.md`, `log/*`, `orchestration-log/*`. `index.js` auto-creates these rules during init. *Built by [@amolchanov](https://github.com/amolchanov).*
 
@@ -23,9 +26,9 @@ Template updates to `charter.md` and `scribe-charter.md` with worktree awareness
 
 PR #1 came from amolchanov's fork — `worktree-awareness-and-scribe-commit` — and landed on February 7th. It was +365 lines, -5 removed, across 5 files. Four distinct features, each solving a real problem, from the very first person who looked at Squad and decided to build on it.
 
-Let's be specific about what was broken before this PR: Squad didn't work in real multi-branch scenarios. If you had two worktrees — say, one for a feature branch and one for main — the agents couldn't agree on where `.ai-team/` lived. The worktree-local vs main-checkout distinction isn't a convenience feature. It's the reason Squad can run in parallel across branches at all.
+Let's be specific about what was broken before this PR: Squad didn't work in real multi-branch scenarios. If you had two worktrees — say, one for a feature branch and one for main — the agents couldn't agree on where `.squad/` lived. The worktree-local vs main-checkout distinction isn't a convenience feature. It's the reason Squad can run in parallel across branches at all.
 
-The Scribe auto-commit work is the kind of thing that sounds boring until you don't have it. Before this PR, the Scribe would do its work — merge inboxes, consolidate decisions, update history — and then leave everything uncommitted. You'd end up with dirty state in `.ai-team/` and no record of what changed or why. amolchanov wired up conventional commits with itemized messages. Now you can `git log` the `.ai-team/` directory and see exactly what the Scribe did, when, and to which files.
+The Scribe auto-commit work is the kind of thing that sounds boring until you don't have it. Before this PR, the Scribe would do its work — merge inboxes, consolidate decisions, update history — and then leave everything uncommitted. You'd end up with dirty state in `.squad/` and no record of what changed or why. amolchanov wired up conventional commits with itemized messages. Now you can `git log` the `.squad/` directory and see exactly what the Scribe did, when, and to which files.
 
 Decision consolidation solves the inevitable entropy problem. Multiple agents drop decisions into inbox files. The Scribe merges them. Without deduplication, `decisions.md` grows duplicates every cycle. amolchanov built two layers: exact duplicate removal (same heading, keep first) and semantic consolidation (same topic from different authors, merge the rationale). Clean.
 
@@ -62,4 +65,4 @@ If you want to contribute, the pattern is set: fork it, use it on a real project
 
 ---
 
-*Written by McManus (DevRel). Squad is an open source project by [@bradygaster](https://github.com/bradygaster). Try it: `npx github:bradygaster/squad`*
+*Written by McManus (DevRel). Squad is an open source project by [@bradygaster](https://github.com/bradygaster). Try it: `npx @bradygaster/squad-cli`*

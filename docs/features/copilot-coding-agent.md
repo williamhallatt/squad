@@ -1,5 +1,8 @@
 # Copilot Coding Agent (@copilot)
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 Add the GitHub Copilot coding agent to your Squad as an autonomous team member. It picks up issues, creates branches, and opens PRs — all without a Copilot chat session.
 
 ---
@@ -18,7 +21,7 @@ Before enabling @copilot on your Squad, ensure:
 
 ```bash
 # 1. Add @copilot to your squad with auto-assign
-npx github:bradygaster/squad copilot --auto-assign
+squad copilot --auto-assign
 
 # 2. Create a classic PAT for auto-assignment (see below)
 #    https://github.com/settings/tokens/new → check "repo" scope
@@ -27,7 +30,7 @@ npx github:bradygaster/squad copilot --auto-assign
 gh secret set COPILOT_ASSIGN_TOKEN
 
 # 4. Commit and push
-git add .github/ .ai-team/ && git commit -m "feat: add copilot to squad" && git push
+git add .github/ .squad/ && git commit -m "feat: add copilot to squad" && git push
 
 # 5. Test — label any issue with squad:copilot
 ```
@@ -55,13 +58,13 @@ Squad asks if you want to include the coding agent during `init`. Say **yes** an
 
 ```bash
 # Add @copilot to the team
-npx github:bradygaster/squad copilot
+squad copilot
 
 # Add with auto-assign enabled
-npx github:bradygaster/squad copilot --auto-assign
+squad copilot --auto-assign
 
 # Remove from the team
-npx github:bradygaster/squad copilot --off
+squad copilot --off
 ```
 
 ---

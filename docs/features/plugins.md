@@ -1,5 +1,8 @@
 # Plugin Marketplace Guide
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to add instant expertise:**
 ```
 Install the AWS deployment plugin
@@ -25,7 +28,7 @@ Your Squad can discover and install **plugins** — curated collections of agent
 Plugins are **community-curated bundles** of reusable knowledge. Each plugin contains:
 
 - **Agent templates** — specialized role charters for common needs (e.g., "AWS DevOps", "Python Data Science")
-- **Skills** — reusable `.ai-team/skills/SKILL.md` files encoding patterns and best practices
+- **Skills** — reusable `.squad/skills/SKILL.md` files encoding patterns and best practices
 - **Instructions** — `decisions.md` snippets for conventions and routing rules
 - **Sample prompts** — ready-to-use prompts that activate plugin capabilities
 
@@ -163,8 +166,8 @@ Or use the exact command:
 
 Squad:
 1. Downloads the plugin bundle
-2. Merges agent templates into your `.ai-team/agents/` folder
-3. Adds skills to `.ai-team/skills/`
+2. Merges agent templates into your `.squad/agents/` folder
+3. Adds skills to `.squad/skills/`
 4. Updates `decisions.md` with plugin conventions
 5. Seeds all relevant agents with plugin knowledge
 
@@ -402,7 +405,7 @@ You control the merge.
 
 3. Check that `decisions.md` was updated:
    ```bash
-   cat .ai-team/decisions.md | grep -i plugin-name
+   cat .squad/decisions.md | grep -i plugin-name
    ```
 
 ### "Marketplace is too slow"
@@ -423,5 +426,5 @@ You control the merge.
 ## See Also
 
 - [Skills System](./skills.md) — how plugins encode reusable knowledge
-- [Adding Team Members](../guide.md#adding-members) — plugins speed up onboarding
-- [Decisions System](../guide.md#memory-system) — plugins merge conventions into shared decisions
+- [Your Team](../concepts/your-team.md) — team member management and onboarding
+- [Memory & Knowledge](../concepts/memory-and-knowledge.md) — decisions and shared conventions

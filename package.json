@@ -1,33 +1,52 @@
 {
-  "name": "@bradygaster/create-squad",
-  "version": "0.5.4",
-  "description": "Add an AI agent team to any project",
-  "bin": {
-    "create-squad": "./index.js"
-  },
-  "files": [
-    "index.js",
-    ".github/agents/squad.agent.md",
-    "templates/**/*",
-    "CHANGELOG.md"
+  "name": "@bradygaster/squad",
+  "version": "0.8.18-preview",
+  "private": true,
+  "description": "Squad — Programmable multi-agent runtime for GitHub Copilot, built on @github/copilot-sdk",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
   ],
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "prepare": "npm run build",
+    "prebuild": "node scripts/bump-build.mjs",
+    "build": "npm run build -w packages/squad-sdk && npm run build -w packages/squad-cli",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit -p packages/squad-sdk/tsconfig.json && tsc --noEmit -p packages/squad-cli/tsconfig.json",
+    "dev:link": "npm run build && cd packages/squad-sdk && npm link && cd ../squad-cli && npm link",
+    "dev:unlink": "cd packages/squad-cli && npm unlink && cd ../squad-sdk && npm unlink",
+    "docs:build": "node docs/build.js",
+    "docs:preview": "cd docs/dist && npx serve ."
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-metrics": "^2.5.1",
+    "@opentelemetry/sdk-trace-base": "^2.5.1",
+    "@playwright/test": "^1.58.2",
+    "@vitest/coverage-v8": "^3.2.4",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.1.1",
+    "playwright": "^1.58.2",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
   },
   "keywords": [
-    "ai",
-    "agents",
     "copilot",
+    "multi-agent",
     "squad",
-    "team"
+    "sdk"
   ],
-  "author": "bradygaster",
   "license": "MIT",
-  "engines": {
-    "node": ">=22.0.0"
+  "homepage": "https://github.com/bradygaster/squad#readme",
+  "bugs": {
+    "url": "https://github.com/bradygaster/squad/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/bradygaster/squad"
+    "url": "https://github.com/bradygaster/squad.git"
   }
 }

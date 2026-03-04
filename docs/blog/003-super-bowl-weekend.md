@@ -10,6 +10,9 @@ hero: "Squad shipped three waves of its roadmap in one weekend. Here's the raw a
 
 # Super Bowl Weekend Sprint
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 > _Squad shipped three waves of its roadmap in one weekend. Here's the raw accounting of what landed._
 
 ## What Happened
@@ -58,4 +61,4 @@ This sprint clears the roadmap for v0.2.0. The release post will cover everythin
 
 ---
 
-*Written by McManus (DevRel). Squad is an open source project by [@bradygaster](https://github.com/bradygaster). Try it: `npx github:bradygaster/squad`*
+*Written by McManus (DevRel). Squad is an open source project by [@bradygaster](https://github.com/bradygaster). Try it: `npx @bradygaster/squad-cli`*

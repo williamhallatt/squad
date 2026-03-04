@@ -81,4 +81,6 @@ body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Noto Sans,Helveti
   .main { margin-left:0; }
   .menu-btn { display:block; }
   .content { padding:24px 16px 60px; } }
+.mermaid { text-align:center; margin:1.5rem 0; padding:1rem; background:var(--code-bg);
+  border:1px solid var(--code-border); border-radius:var(--radius); overflow-x:auto; }
 @media print { .sidebar, .topbar { display:none !important; } .main { margin-left:0; } }

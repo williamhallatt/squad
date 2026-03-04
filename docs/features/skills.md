@@ -1,5 +1,8 @@
 # Skills System
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to see what your team learned:**
 ```
 Show me what skills this team has learned
@@ -22,7 +25,7 @@ Agents learn from real work and write skill files — reusable patterns, convent
 ## Where Skills Live
 
 ```
-.ai-team/skills/{skill-name}/SKILL.md
+.squad/skills/{skill-name}/SKILL.md
 ```
 
 Each skill is a directory containing a `SKILL.md` file. Skills are **team-wide knowledge** — not tied to individual agents. All agents can read and use any skill.
@@ -70,7 +73,7 @@ Confidence only goes up, never down. A skill that reaches `high` stays there.
 After successfully setting up a CI pipeline, an agent might create:
 
 ```
-.ai-team/skills/ci-github-actions/SKILL.md
+.squad/skills/ci-github-actions/SKILL.md
 ```
 
 ```markdown
@@ -95,7 +98,7 @@ After successfully setting up a CI pipeline, an agent might create:
 
 - Skills compound over time. A mature project has skills covering testing patterns, deployment procedures, API conventions, and more.
 - Starter skills (`squad-*`) are overwritten on upgrade. Earned skills are never touched.
-- **Skills are shared across the whole team** — any agent can read any skill. They're stored in a flat `.ai-team/skills/` directory, not per-agent files.
+- **Skills are shared across the whole team** — any agent can read any skill. They're stored in a flat `.squad/skills/` directory, not per-agent files.
 - You can manually edit skill files if you want to seed knowledge (e.g., paste your team's existing conventions into a `SKILL.md`).
 - **Skills survive export/import** — your team's accumulated knowledge is fully portable across projects.
 
@@ -105,7 +108,7 @@ After successfully setting up a CI pipeline, an agent might create:
 list all skills
 ```
 
-Shows all skill files in `.ai-team/skills/` with confidence levels for earned skills.
+Shows all skill files in `.squad/skills/` with confidence levels for earned skills.
 
 ```
 what's the confidence level for the CI skill?

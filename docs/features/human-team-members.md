@@ -1,5 +1,8 @@
 # Human Team Members
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to add a human specialist:**
 ```
 Add Sarah (sarah@example.com) as a frontend developer to the team
@@ -52,7 +55,7 @@ If the human hasn't responded after a while, Squad sends **stale reminders** pro
 
 ## Humans as Reviewers
 
-Human team members can serve as reviewers in the [reviewer protocol](../guide.md). This is useful when you want a real person to sign off before work is considered done.
+Human team members can serve as reviewers in the [reviewer protocol](../concepts/your-team.md#reviewer-protocol). This is useful when you want a real person to sign off before work is considered done.
 
 ```
 > Add Jordan as security reviewer
@@ -70,7 +73,7 @@ Same as removing any team member — they move to alumni:
 > Remove Sarah from the team
 ```
 
-Their entry moves to `.ai-team/agents/_alumni/`. They can be re-added later.
+Their entry moves to `.squad/agents/_alumni/`. They can be re-added later.
 
 ---
 

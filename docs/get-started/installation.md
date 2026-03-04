@@ -1,0 +1,166 @@
+# Installation
+
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
+Three ways to get Squad running. Pick the one that fits.
+
+---
+
+## Try this:
+
+```bash
+npm install -g @bradygaster/squad-cli
+squad
+```
+
+That's it. You're in.
+
+---
+
+## 1. CLI (Recommended)
+
+The CLI is the fastest way to use Squad from any terminal.
+
+### Global install
+
+```bash
+npm install -g @bradygaster/squad-cli
+```
+
+Now use it anywhere:
+
+```bash
+squad init
+squad status
+squad watch
+```
+
+### One-off with npx
+
+No install needed — run the latest version directly:
+
+```bash
+npx @bradygaster/squad-cli init
+npx @bradygaster/squad-cli status
+```
+
+### Verify
+
+```bash
+squad --version
+```
+
+### Update
+
+```bash
+npm install -g @bradygaster/squad-cli@latest
+```
+
+---
+
+## 2. VS Code
+
+Squad works in VS Code through GitHub Copilot. Your `.squad/` directory works identically in both CLI and VS Code — same agents, same decisions, same memory.
+
+> **Tip:** Initialize your team with the CLI (`squad`), then open the project in VS Code to keep working with the same squad.
+
+---
+
+## 3. SDK
+
+Building your own tooling on top of Squad? Install the SDK as a project dependency:
+
+```bash
+npm install @bradygaster/squad-sdk
+```
+
+Then import what you need:
+
+```typescript
+import { defineConfig, loadConfig, resolveSquad } from '@bradygaster/squad-sdk';
+```
+
+The SDK gives you typed configuration, routing, model selection, and the full agent lifecycle API. See the [SDK Reference](../reference/sdk.md) for details.
+
+---
+
+### Personal squad (cross-project)
+
+Want the same agents across all your projects?
+
+```bash
+squad init --global
+```
+
+This creates `~/.squad/` — a personal team root that any project can inherit from. See [Upstream Inheritance](../features/upstream-inheritance.md) for details.
+
+---
+
+## First-Time Setup
+
+After installing, initialize Squad in your project:
+
+```bash
+cd your-project
+squad init
+```
+
+This creates:
+
+```
+.github/agents/squad.agent.md  — coordinator agent
+.squad/                        — team state directory
+```
+
+### Configuration (optional)
+
+For typed configuration, create a `squad.config.ts` at your project root:
+
+```typescript
+import { defineConfig } from '@bradygaster/squad-sdk';
+
+export default defineConfig({
+  team: {
+    name: 'my-squad',
+    root: '.squad',
+    description: 'My project team',
+  },
+});
+```
+
+`defineConfig()` gives you full autocomplete and validation. But you don't need it to get started — Squad works out of the box with sensible defaults.
+
+---
+
+## Troubleshooting
+
+### `squad: command not found`
+
+Your npm global bin isn't in your PATH. Fix:
+
+```bash
+# Check if installed
+npm list -g @bradygaster/squad-cli
+
+# If installed but not found, check PATH:
+echo $PATH | grep npm          # macOS/Linux
+echo %PATH% | findstr npm      # Windows
+```
+
+### `Cannot find .squad/ directory`
+
+Run `squad init` in your project root, or `squad init --global` for a personal squad.
+
+### Version mismatch between CLI and SDK
+
+Update both:
+
+```bash
+npm install -g @bradygaster/squad-cli@latest
+npm install @bradygaster/squad-sdk@latest
+```
+
+---
+
+## Ready? → [Your First Session](first-session.md)

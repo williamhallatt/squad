@@ -1,5 +1,8 @@
 # Parallel Execution
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to launch concurrent work streams:**
 ```
 Have three agents work on this in parallel: UI mockups, API spec, and database schema
@@ -124,7 +127,7 @@ This is a **sync gate** — the next step cannot proceed until the reviewer comp
 
 ## Parallel Execution Logs
 
-The coordinator logs parallel execution in `.ai-team/orchestration-log/`:
+The coordinator logs parallel execution in `.squad/orchestration-log/`:
 
 ```
 [2024-01-15 14:30:00] FAN-OUT: Spawning 4 agents (Backend, Frontend, Tester, DevRel)

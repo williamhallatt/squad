@@ -1,18 +1,11 @@
 # Squad Alongside a Team of Human Developers
 
-**Try this to use Squad for coordination:**
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
+**Try this:**
 ```
 My team is all human devs — I just want Squad to help with coordination and memory
-```
-
-**Try this to add human team members:**
-```
-Add Sarah (senior backend engineer) and Jamal (frontend lead) as human members
-```
-
-**Try this to route critical decisions:**
-```
-Route security decisions to Sarah, she's the expert
 ```
 
 Mixed AI + human teams: AI agents handle implementation, humans review and make critical decisions. Route work to humans just like AI agents.
@@ -20,8 +13,6 @@ Mixed AI + human teams: AI agents handle implementation, humans review and make 
 ---
 
 ## 1. Add Human Members to the Roster
-
-Mixed AI + human teams. AI agents work, humans review. Route decisions to humans, let AI handle implementation.
 
 Tell Squad about your human team members:
 
@@ -40,7 +31,7 @@ Humans appear in the roster but don't get charters.
 Work can be routed to them via routing rules.
 ```
 
-Squad adds them to `.ai-team/team.md`:
+Squad adds them to `.squad/team.md`:
 
 ```markdown
 ## Human Team Members
@@ -53,7 +44,7 @@ Squad adds them to `.ai-team/team.md`:
 
 ## 2. Routing Rules for Mixed Teams
 
-Edit `.ai-team/routing.md` to route work to humans:
+Edit `.squad/routing.md` to route work to humans:
 
 ```markdown
 # Routing Rules

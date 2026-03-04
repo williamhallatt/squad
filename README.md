@@ -1,11 +1,11 @@
 # Squad
 
-**AI agent teams for any project.** A team that grows with your code.
+**AI agent teams for any project.** One command. A team that grows with your code.
 
-[![Status](https://img.shields.io/badge/status-experimental-blueviolet)](#status)
-[![Platform](https://img.shields.io/badge/platform-GitHub%20Copilot-blue)](#how-it-works)
+[![Status](https://img.shields.io/badge/status-alpha-blueviolet)](#status)
+[![Platform](https://img.shields.io/badge/platform-GitHub%20Copilot-blue)](#about-squad)
 
-📣 **[Join the Squad Community](docs/community.md)** — meet contributors, see deployments, share your work.
+> ⚠️ **Alpha Software** — Squad is experimental. APIs and CLI commands may change between releases. We'll document breaking changes in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
@@ -14,9 +14,6 @@
 Squad gives you an AI development team through GitHub Copilot. Describe what you're building. Get a team of specialists — frontend, backend, tester, lead — that live in your repo as files. They persist across sessions, learn your codebase, share decisions, and get better the more you use them.
 
 It's not a chatbot wearing hats. Each team member runs in its own context, reads only its own knowledge, and writes back what it learned.
-
-> [!IMPORTANT]
-> **Ralph's Heartbeat & GitHub Actions Minutes** — We identified that Ralph's heartbeat Action was consuming more GitHub Actions minutes than expected due to its 30-minute cron schedule. **This is now fixed in v0.5.4** — the cron is disabled by default. Run `npx github:bradygaster/squad upgrade` to get the fix. If you have repos where you haven't upgraded yet, please disable the heartbeat workflow or Actions on those repositories until you do. See [#158](https://github.com/bradygaster/squad/issues/158) for details.
 
 ---
 
@@ -32,21 +29,16 @@ git init
 ### 2. Install Squad
 
 ```bash
-npx github:bradygaster/squad
+npm install --save-dev @bradygaster/squad-cli
+npx squad init
 ```
 
-This installs the Squad agent, 10 GitHub Actions workflows for automation (Ralph heartbeat, CI, triage, etc.), templates, and starter skills.
+**Or use npx (no install):** `npx @bradygaster/squad-cli` — see [Migration Guide](docs/migration-github-to-npm.md) if upgrading from the old GitHub-native distribution, or [comprehensive v0.8.18+ migration guide](docs/migration-guide-private-to-public.md).
 
 ### 3. Authenticate with GitHub (for Issues, PRs, and Ralph)
 
 ```bash
 gh auth login
-```
-
-If you plan to use [Project Boards](docs/features/project-boards.md), add the `project` scope:
-
-```bash
-gh auth refresh -s project
 ```
 
 ### 4. Open Copilot and go
@@ -55,8 +47,8 @@ gh auth refresh -s project
 copilot
 ```
 
-**In the GitHub Copilot CLI**, type `/agent` and select **Squad (vX.Y.Z)**.  
-**In VS Code**, type `/agents` and select **Squad (vX.Y.Z)**.
+**In the GitHub Copilot CLI**, type `/agent` and select **Squad**.
+**In VS Code**, type `/agents` and select **Squad**.
 
 Then:
 
@@ -69,9 +61,111 @@ Squad proposes a team — each member named from a persistent thematic cast. You
 
 ---
 
+## All Commands (15 commands)
+
+| Command | What it does |
+|---------|-------------|
+| `squad init` | **Init** — scaffold Squad in the current directory (idempotent — safe to run multiple times); alias: `hire`; use `--global` to init in personal squad directory, `--mode remote <path>` for dual-root mode |
+| `squad upgrade` | Update Squad-owned files to latest; never touches your team state; use `--global` to upgrade personal squad, `--migrate-directory` to rename `.ai-team/` → `.squad/` |
+| `squad status` | Show which squad is active and why |
+| `squad triage` | Watch issues and auto-triage to team (aliases: `watch`, `loop`); use `--interval <minutes>` to set polling frequency (default: 10) |
+| `squad copilot` | Add/remove the Copilot coding agent (@copilot); use `--off` to remove, `--auto-assign` to enable auto-assignment |
+| `squad doctor` | Check your setup and diagnose issues (alias: `heartbeat`) |
+| `squad link <team-repo-path>` | Connect to a remote team |
+| `squad shell` | Launch interactive shell explicitly |
+| `squad export` | Export squad to a portable JSON snapshot |
+| `squad import <file>` | Import squad from an export file |
+| `squad plugin marketplace add\|remove\|list\|browse` | Manage plugin marketplaces |
+| `squad upstream add\|remove\|list\|sync` | Manage upstream Squad sources |
+| `squad nap` | Context hygiene — compress, prune, archive; use `--deep` for aggressive compression, `--dry-run` to preview changes |
+| `squad aspire` | Open Aspire dashboard for observability |
+| `squad scrub-emails [directory]` | Remove email addresses from Squad state files (default: `.squad/`) |
+
+---
+
+## Interactive Shell
+
+Tired of typing `squad` followed by a command every time? Enter the interactive shell.
+
+### Entering the Shell
+
+```bash
+squad
+```
+
+No arguments. Just `squad`. You'll get a prompt:
+
+```
+squad >
+```
+
+You're now connected to your team. Talk to them.
+
+### Shell Commands
+
+All shell commands start with `/`:
+
+| Command | What it does |
+|---------|-------------|
+| `/status` | Check your team and what's happening |
+| `/history` | See recent messages |
+| `/agents` | List all team members |
+| `/sessions` | List saved sessions |
+| `/resume <id>` | Restore a past session |
+| `/version` | Show version |
+| `/clear` | Clear the screen |
+| `/help` | Show all commands |
+| `/quit` | Exit the shell (or Ctrl+C) |
+
+### Talking to Agents
+
+Use `@AgentName` (case-insensitive) or natural language with a comma:
+
+```
+squad > @Keaton, analyze the architecture of this project
+squad > McManus, write a blog post about our new feature
+squad > Build the login page
+```
+
+The coordinator routes messages to the right agents. Multiple agents can work in parallel—you'll see progress in real-time.
+
+### What the Shell Does
+
+- **Real-time visibility:** See agents working, decisions being recorded, blockers as they happen
+- **Message routing:** Describe what you need; the coordinator figures out who should do it
+- **Parallel execution:** Multiple agents work simultaneously on independent tasks
+- **Session persistence:** If an agent crashes, it resumes from checkpoint; you never lose context
+- **Decision logging:** Every decision is recorded in `.squad/decisions.md` for the whole team to see
+
+For more details on shell usage, see the commands table above.
+
+## Samples
+
+Eight working examples from beginner to advanced — casting, governance, streaming, Docker. See [samples/README.md](samples/README.md).
+
+---
+
+### Insider Channel
+
+Want the latest features before they ship?
+
+```bash
+npm install --save-dev @bradygaster/squad-cli@insider
+```
+
+For insider builds:
+
+```bash
+npm install -g @bradygaster/squad-cli@insider
+```
+
+> **Note:** GitHub-native distribution (`npx github:bradygaster/squad`) has been removed. All distribution is now via npm (see [Migration Guide](docs/migration-github-to-npm.md) for v0.8.18+ migration details).
+
+---
+
 ## Agents Work in Parallel — You Catch Up When You're Ready
 
-Squad doesn't work on a human schedule. When you give a task, the coordinator launches every agent that can usefully start — simultaneously. Frontend, backend, tests, architecture — all at once.
+Squad doesn't work on a human schedule. When you give a task, the coordinator launches every agent that can usefully start — simultaneously.
 
 ```
 You: "Team, build the login page"
@@ -83,119 +177,15 @@ You: "Team, build the login page"
   📋 Scribe — logging everything...             ⎦
 ```
 
-When agents finish, the coordinator immediately chains follow-up work — tests reveal edge cases, the backend agent picks them up, no waiting for you to ask. If you step away, a breadcrumb trail is waiting when you get back:
+When agents finish, the coordinator immediately chains follow-up work. If you step away, a breadcrumb trail is waiting when you get back:
 
-- **`decisions.md`** — every decision any agent made, merged by Scribe
+- **`decisions.md`** — every decision any agent made
 - **`orchestration-log/`** — what was spawned, why, and what happened
 - **`log/`** — full session history, searchable
 
 **Knowledge compounds across sessions.** Every time an agent works, it writes lasting learnings to its `history.md`. After a few sessions, agents know your conventions, your preferences, your architecture. They stop asking questions they've already answered.
 
-| | 🌱 First session | 🌿 After a few sessions | 🌳 Mature project |
-|---|---|---|---|
-| ⚛️ **Frontend** | Project structure, framework choice | Component library, routing, state patterns | Design system, perf patterns, a11y conventions |
-| 🔧 **Backend** | Stack, database, initial endpoints | Auth strategy, rate limiting, SQL preferences | Caching layers, migration patterns, monitoring |
-| 🏗️ **Lead** | Scope, team roster, first decisions | Architecture trade-offs, risk register | Full project history, tech debt map |
-| 🧪 **Tester** | Test framework, first test cases | Integration patterns, edge case catalog | Regression patterns, coverage gaps, CI pipeline |
-| 📋 **Scribe** | First session logged | Cross-team decisions propagated | Full searchable archive of every session and decision |
-| 🔄 **Ralph** | Board check after first batch | Auto-triage, CI monitoring | Continuous backlog processing, zero idle time |
-
-Each agent's knowledge is personal — stored in its own `history.md`. Team-wide decisions live in `decisions.md`, where every agent reads before working. The more you use Squad, the less context you have to repeat.
-
 **And it's all in git.** Anyone who clones your repo gets the team — with all their accumulated knowledge.
-
----
-
-## How It Works
-
-### The Key Insight
-
-Each agent gets its **own context window**. The coordinator is thin. Each agent loads only its charter + history. No shared bloat.
-
-```mermaid
-graph TB
-    U["🧑‍💻 You"] -->|"Team, build the login page"| C["GitHub Copilot"]
-
-    subgraph team [" 🏢 The Team "]
-        direction LR
-        A["🏗️ Lead"]
-        K["⚛️ Frontend"]
-        R["🔧 Backend"]
-        T["🧪 Tester"]
-    end
-
-    C -->|spawns| A
-    C -->|spawns| K
-    C -->|spawns| R
-    C -->|spawns| T
-    C -.->|silent| S["📋 Scribe"]
-    C -.->|monitors| RL["🔄 Ralph"]
-
-    subgraph memory [" 🧠 Shared Memory "]
-        direction LR
-        D["decisions.md"]
-        L["log/"]
-    end
-
-    A & K & R & T -->|read & write| D
-    S -->|merges & logs| D
-    S -->|writes| L
-
-    A -->|learns| HA["history.md"]
-    K -->|learns| HK["history.md"]
-    R -->|learns| HR["history.md"]
-    T -->|learns| HT["history.md"]
-
-    style U fill:#000,color:#fff,stroke:#333
-    style C fill:#000,color:#fff,stroke:#333
-    style A fill:#000,color:#fff,stroke:#333
-    style K fill:#000,color:#fff,stroke:#333
-    style R fill:#000,color:#fff,stroke:#333
-    style T fill:#000,color:#fff,stroke:#333
-    style S fill:#000,color:#fff,stroke:#333
-    style D fill:#000,color:#fff,stroke:#333
-    style L fill:#000,color:#fff,stroke:#333
-    style HA fill:#000,color:#fff,stroke:#333
-    style HK fill:#000,color:#fff,stroke:#333
-    style HR fill:#000,color:#fff,stroke:#333
-    style HT fill:#000,color:#fff,stroke:#333
-    style team fill:none,stroke:#fff,stroke-width:2px,stroke-dasharray:5 5
-    style memory fill:none,stroke:#fff,stroke-width:2px,stroke-dasharray:5 5
-```
-
-### Context Window Budget
-
-Real numbers. No hand-waving. Updated as the project grows.
-
-Both Claude Sonnet 4 and Claude Opus 4 have a **200K token** standard context window. Each agent runs in its own window, so the coordinator is the only shared overhead.
-
-| What | Tokens | % of 200K context | When |
-|------|--------|--------------------|------|
-| **Coordinator** (squad.agent.md) | ~26,300 | 13.2% | Every message |
-| **Agent spawn overhead** (charter ~750 + inlined in prompt) | ~750 | 0.4% | When spawned |
-| **decisions.md** (shared brain — read by every agent) | ~32,600 | 16.3% | When spawned |
-| **Agent history** (varies: 1K fresh → 12K veteran) | ~1,000–12,000 | 0.5–6.0% | When spawned |
-| **Total agent load** (charter + decisions + history) | ~34,000–45,000 | 17–23% | When spawned |
-| **Remaining for actual work** | **~155,000–166,000** | **78–83%** | Always |
-
-**v0.4.0 context optimization (Feb 2026):** We ran a context budget audit and found `decisions.md` had ballooned to ~80K tokens (40% of context) after 250+ accumulated decision blocks. Combined with spawn template duplication in the coordinator, agents were working with barely half a context window. Three targeted optimizations shipped:
-
-1. **decisions.md pruning** — 251 blocks → 78 active decisions. Stale sprint artifacts, completed analysis docs, and one-time planning fragments archived to `decisions-archive.md`. Nothing deleted — full history preserved.
-2. **Spawn template deduplication** — Three near-identical templates (background, sync, generic) collapsed to one. Saved ~3,600 tokens in the coordinator prompt.
-3. **Init Mode compression** — 84 lines of first-run-only instructions compressed to 48 lines. Same behavior, less prose.
-
-**Result:** Per-agent spawn cost dropped from 41–46% to 17–23% of context. Agents now have ~78–83% of their context window for actual work, up from ~54–59%. As your squad runs more sessions and accumulates more decisions, Scribe's history summarization keeps per-agent history bounded. For decisions.md, a Scribe-driven automated pruning system is planned for v0.5.0 (see issue #37) — until then, the archive pattern keeps the shared brain lean.
-
-**The architecture still wins.** Each agent runs in **its own** 200K window. The coordinator's window is separate from every agent's window. Fan out to 5 agents and you're working with **~1M tokens** of total reasoning capacity. The per-agent overhead is real but bounded — and the pruning system ensures it stays that way as your project grows.
-
-### Memory Architecture
-
-| Layer | What | Who writes | Who reads |
-|-------|------|-----------|-----------|
-| `charter.md` | Identity, expertise, voice | Squad (at init) | The agent itself |
-| `history.md` | Project-specific learnings | Each agent, after every session | That agent only |
-| `decisions.md` | Team-wide decisions | Any agent | All agents |
-| `log/` | Session history | Scribe | Anyone (searchable archive) |
 
 ---
 
@@ -206,245 +196,487 @@ Both Claude Sonnet 4 and Claude Opus 4 have a **200K token** standard context wi
 ├── team.md              # Roster — who's on the team
 ├── routing.md           # Routing — who handles what
 ├── decisions.md         # Shared brain — team decisions
+├── ceremonies.md        # Sprint ceremonies config
 ├── casting/
 │   ├── policy.json      # Casting configuration
 │   ├── registry.json    # Persistent name registry
 │   └── history.json     # Universe usage history
 ├── agents/
-│   ├── {name}/          # Each agent gets a persistent cast name
+│   ├── {name}/
 │   │   ├── charter.md   # Identity, expertise, voice
 │   │   └── history.md   # What they know about YOUR project
-│   ├── {name}/
-│   │   ├── charter.md
-│   │   └── history.md
 │   └── scribe/
 │       └── charter.md   # Silent memory manager
-└── log/                 # Session history
+├── skills/              # Compressed learnings from work
+├── identity/
+│   ├── now.md           # Current team focus
+│   └── wisdom.md        # Reusable patterns
+└── log/                 # Session history (searchable archive)
 ```
 
 **Commit this folder.** Your team persists. Names persist. Anyone who clones gets the team — with the same cast.
 
 ---
 
-## Growing the Team
+## Monorepo Development
 
-### Adding Members
+Squad is a monorepo with two packages:
+- **`@bradygaster/squad-sdk`** — Core runtime and library for programmable agent orchestration
+- **`@bradygaster/squad-cli`** — Command-line interface that depends on the SDK
 
+### Building
+
+```bash
+# Install dependencies (npm workspaces)
+npm install
+
+# Build TypeScript to dist/
+npm run build
+
+# Build CLI bundle (dist/ + esbuild → cli.js)
+npm run build:cli
+
+# Watch mode for development
+npm run dev
 ```
-> I need a DevOps person.
+
+### Testing
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode
+npm run test:watch
 ```
 
-Squad generates a new agent, seeds them with project context and existing decisions. Immediately productive.
+### Linting
 
-### Removing Members
-
+```bash
+# Type check (no emit)
+npm run lint
 ```
-> Remove the designer — we're past that phase.
+
+### Publishing
+
+Squad uses [changesets](https://github.com/changesets/changesets) for independent versioning across packages:
+
+```bash
+# Add a changeset
+npx changeset add
+
+# Validate changesets
+npm run changeset:check
 ```
 
-Agents aren't deleted. Their charter and history move to `.squad/agents/_alumni/`. Knowledge preserved, nothing lost. If you need them back later, they remember everything.
+Changesets are resolved on the `main` branch; releases happen independently per package.
 
 ---
 
-## Reviewer Protocol
+## The SDK: Programmable Agent Runtime
 
-Team members with review authority (Tester, Lead) can **reject** work. On rejection, the reviewer may require:
+> Everything above works out of the box. The sections below are for developers who want **programmatic control** over agent orchestration.
 
-- A **different agent** handles the revision (not the original author)
-- A **new specialist** is spawned for the task
+```
+┌─────────────────────────────────────────────┐
+│  Your Code (TypeScript)                     │
+│  - createSession(), spawnParallel()         │
+│  - SquadClient, EventBus, HookPipeline      │
+└─────────────────────────────────────────────┘
+           ↓
+┌─────────────────────────────────────────────┐
+│  Agent Orchestration Runtime                │
+│  - Router (matchRoute, compileRoutingRules) │
+│  - Charter Compiler (permissions, voice)    │
+│  - Tool Registry (squad_route, etc.)        │
+│  - Hook Pipeline (governance enforcement)   │
+└─────────────────────────────────────────────┘
+           ↓
+┌─────────────────────────────────────────────┐
+│  Session Pool + Event Bus                   │
+│  - Each agent gets a persistent session     │
+│  - Cross-session event pub/sub               │
+│  - Crash recovery via session state         │
+└─────────────────────────────────────────────┘
+           ↓
+┌─────────────────────────────────────────────┐
+│  @github/copilot-sdk                        │
+│  - Real-time agent streaming                │
+│  - Tool execution                           │
+└─────────────────────────────────────────────┘
+```
 
-The Coordinator enforces this. No self-review of rejected work.
+### The Key Difference
+
+**Prompt-only orchestration** (v0.5.2): One 32KB prompt describes all agents, all rules, all decision-making. The coordinator is text. Agents read it, interpret it, maybe follow it.
+
+```
+Prompt says:
+"If the agent is Keaton, apply this logic. If McManus, apply that logic."
+Agent reads it (consumes tokens), decides what to do (might ignore it).
+```
+
+**SDK orchestration** (v0.6+): Rules are code. Sessions are objects. Routing is compiled. Tools are validated before they run.
+
+```
+Router.matchRoute(message) → { agent: 'Keaton', priority: 'high' }
+TypeScript knows exactly which agent will run, with what permissions.
+HookPipeline runs file-write guards BEFORE the tool executes.
+No interpretation. No ambiguity. Just code.
+```
 
 ---
 
-## What's New in v0.5.4
+## The Custom Tools
 
-### Bug Fixes
-- **Ralph heartbeat cron disabled by default** — The 30-minute cron schedule in `squad-heartbeat.yml` was consuming excessive GitHub Actions minutes for users with multiple Squad-enabled repos. The cron is now disabled by default. Ralph still auto-triages on issue close/label and PR close events (zero extra cost). For proactive polling, uncomment the cron in your workflow or use `npx github:bradygaster/squad watch` locally. Run `npx github:bradygaster/squad upgrade` to get the fix. Fixes [#158](https://github.com/bradygaster/squad/issues/158).
+These five tools let agents coordinate without calling you back.
 
-<details>
-<summary>Previous: v0.5.3</summary>
+### `squad_route` — Hand off work to another agent
 
-### Bug Fixes
-- **Windows EPERM fallback** — `safeRename()` catches EPERM/EACCES errors (VS Code file watchers hold handles on Windows), falls back to copy+delete. Fixes #135, PR #149.
-- **`--version` now shows installed version** — `npx github:bradygaster/squad --version` now shows both the installed Squad version AND the Copilot CLI version on separate lines. Fixes #137, PR #149.
-- **Content replacement in migrate-directory** — When migrating from `.ai-team/` to `.squad/`, file contents (not just paths) now get `.ai-team/` references replaced with `.squad/`. Fixes #134, PR #151.
+```typescript
+const tool = toolRegistry.getTool('squad_route');
+const result = await tool.handler({
+  targetAgent: 'McManus',  // Route to DevRel
+  task: 'Write a blog post on the new casting system',
+  priority: 'high',
+  context: 'This feature launches next week',
+});
+```
 
-### Behavior Change
-- **Guard workflow removed** — The `squad-main-guard.yml` workflow that blocked `.squad/` files from reaching main/preview has been removed. `.squad/` files now flow freely to all branches. Users who want to exclude `.squad/` can use `.gitignore`. Existing installations get the guard auto-deleted on next `squad upgrade` (v0.5.4 migration). Fixes #150, PR #152.
+**What it does:** Keaton (lead) routes a task to McManus (DevRel). Creates a new session for McManus, passes context, queues it with priority. McManus picks it up next.
 
-### Community
-- Responded to and closed community issues #146, #145, #139
-- Filed 4 port issues on squad-pr (#548-551) for cross-repo parity
+### `squad_decide` — Record a team decision
 
-### Looking Ahead
-The next release of Squad will be more significant than prior releases, bringing Squad to NPM for easier installation. The package will still ship from this repository, so existing users will see a transparent change. Issues or PRs filed between now and that release may be held until the next update is complete. We appreciate the community's continued support and look forward to sharing what's coming.
+```typescript
+const result = await tool.handler({
+  author: 'Keaton',
+  summary: 'Use PostgreSQL, not MongoDB',
+  body: 'We chose PostgreSQL because: (1) transactions, (2) known team expertise, (3) schema flexibility via JSONB.',
+  references: ['PRD-5-coordinator', 'architecture-spike'],
+});
+```
 
-</details>
+**What it does:** Writes to `.squad/decisions/inbox/`. Every agent reads `decisions.md` before working. This is how Keaton's call cascades to the whole team without re-explaining.
 
-_See [full release history](docs/whatsnew.md) for all previous versions._
+### `squad_memory` — Append to agent history
+
+```typescript
+const result = await tool.handler({
+  agent: 'Frontend',
+  section: 'learnings',
+  content: 'This project uses Tailwind v4 with dark mode plugin. Store under .styles/theme.config.ts',
+});
+```
+
+**What it does:** Agents learn as they work. Next session, Frontend reads this and knows immediately. No context hunting.
+
+### `squad_status` — Query the session pool
+
+```typescript
+const result = await tool.handler({
+  agentName: 'Keaton',
+  status: 'active',
+  verbose: true,
+});
+// Returns: { poolSize: 5, activeSessions: 3, sessionsByAgent: {...} }
+```
+
+**What it does:** Ralph uses this to monitor work. You use it to debug ("Is Backend actually running or stalled?").
+
+### `squad_skill` — Read/write agent skills
+
+```typescript
+const result = await tool.handler({
+  skillName: 'react-query-setup',
+  operation: 'read',
+});
+// Returns: skill content from .squad/skills/react-query-setup/SKILL.md
+
+await tool.handler({
+  skillName: 'auth-patterns',
+  operation: 'write',
+  content: 'Pattern for Clerk integration with Next.js...',
+  confidence: 'high',
+});
+```
+
+**What it does:** Skills are compressed learnings. Frontend writes "here's how we do auth" once. Every future Frontend session inherits it. Confidence levels let you track "we're sure" vs "we're experimenting".
 
 ---
 
+## The Hook Pipeline
+
+Rules don't live in prompts. They run before tools execute.
+
+### File-Write Guards
+
+```typescript
+const pipeline = new HookPipeline({
+  allowedWritePaths: [
+    'src/**/*.ts',
+    '.squad/**',
+    'docs/**',
+  ],
+});
+
+// Backend tries to write to /etc/passwd
+// Hook intercepts, blocks, returns:
+// "File write blocked: '/etc/passwd' does not match allowed paths: src/**, ..."
+```
+
+**Why it matters:** No agent (compromised or confused) can write outside your safe zones. Not because we asked nicely in the prompt. Because code won't let them.
+
+### PII Scrubbing
+
+```typescript
+const pipeline = new HookPipeline({
+  scrubPii: true,
+});
+
+// Agent logs "contact brady@example.com about deploy"
+// After tool execution, output is:
+// "contact [EMAIL_REDACTED] about deploy"
+```
+
+**Why it matters:** Sensitive data never escapes. Automatic. Invisible to the agent.
+
+### Reviewer Lockout
+
+```typescript
+const lockout = pipeline.getReviewerLockout();
+
+// Tester rejects Backend's auth code
+lockout.lockout('src/auth.ts', 'Backend');
+
+// Next turn, Backend tries to re-write auth.ts
+// Hook blocks it:
+// "Reviewer lockout: Agent 'Backend' is locked out of artifact 'src/auth.ts'. Another reviewer must handle this artifact."
+```
+
+**Why it matters:** When a reviewer says "no," it sticks. The original author can't sneak a fix in. Protocol enforced.
+
+### Ask-User Rate Limiter
+
+```typescript
+const pipeline = new HookPipeline({
+  maxAskUserPerSession: 3,
+});
+
+// Agent has called ask_user 3 times
+// Fourth attempt is blocked:
+// "ask_user rate limit exceeded: 3/3 calls used for this session. The agent should proceed without user input."
+```
+
+**Why it matters:** Agents don't stall waiting for you. They decide or move on.
+
 ---
 
-## Issue Assignment & Triage
+## Event-Driven Coordination: Ralph
 
-Squad integrates with GitHub Issues. Label an issue with `squad` to trigger triage, or assign directly to a member with `squad:{name}`.
+Ralph is your work monitor. Not a polling loop. A **persistent agent session** that subscribes to everything.
 
-### How It Works
+```typescript
+const ralph = new RalphMonitor({
+  teamRoot: '.squad',
+  healthCheckInterval: 30000,  // Every 30s
+  statePath: '.squad/ralph-state.json',
+});
 
-1. **Label an issue `squad`** — the Lead auto-triages it: reads the issue, determines who should handle it, applies the right `squad:{member}` label, and comments with triage notes.
+ralph.subscribe('agent:task-complete', (event) => {
+  console.log(`✅ ${event.agentName} finished: ${event.task}`);
+});
 
-2. **`squad:{member}` label applied** — the assigned member picks up the issue in their next Copilot session (or automatically if Copilot coding agent is enabled).
+ralph.subscribe('agent:error', (event) => {
+  console.log(`❌ ${event.agentName} failed: ${event.error}`);
+});
 
-3. **Reassign** — remove the current `squad:*` label and add a different member's label.
+await ralph.start();
+```
 
-### Labels
-
-Labels are auto-created from your team roster via the `sync-squad-labels` workflow:
-
-| Label | Purpose |
-|-------|---------|
-| `squad` | Triage inbox — Lead reviews and assigns |
-| `squad:{name}` | Assigned to a specific squad member |
-| `squad:copilot` | Assigned to @copilot for autonomous coding agent work |
-
-Labels sync automatically when `.squad/team.md` changes, or you can trigger the workflow manually.
-
-### Workflows
-
-Squad installs three GitHub Actions workflows:
-
-| Workflow | Trigger | What it does |
-|----------|---------|--------------|
-| `sync-squad-labels.yml` | Push to `.squad/team.md`, manual | Creates/updates `squad:*` labels from roster |
-| `squad-triage.yml` | `squad` label added to issue | Lead triages and assigns `squad:{member}` label |
-| `squad-issue-assign.yml` | `squad:{member}` label added | Acknowledges assignment, queues for member |
-
-### Prerequisites
-
-- GitHub Actions must be enabled on the repository
-- The `GITHUB_TOKEN` needs `issues: write` and `contents: read` permissions
-- For @copilot auto-assign: a classic PAT with `repo` scope stored as `COPILOT_ASSIGN_TOKEN` repo secret (see [setup guide](docs/features/copilot-coding-agent.md#copilot_assign_token-required-for-auto-assign))
-- For automated issue work: [Copilot coding agent](https://docs.github.com/en/copilot) must be enabled on the repo
-
-### Session Awareness
-
-The coordinator checks for open `squad:{member}` issues at session start and will mention them: *"Hey {user}, {AgentName} has an open issue — #42: Fix auth endpoint timeout. Want them to pick it up?"*
+Ralph is always watching. When agents complete work, write decisions, or hit errors, Ralph logs it. Crash? Ralph remembers. Next session, it knows exactly where you left off.
 
 ---
 
+## Crash Recovery: Persistent Sessions
 
-## Install
+Sessions aren't ephemeral. They're durable.
 
-```bash
-npx github:bradygaster/squad
+```typescript
+const session = await client.createSession({
+  agentName: 'Backend',
+  task: 'Implement user auth endpoints',
+  persistPath: '.squad/sessions/backend-auth-001.json',
+});
+
+// Agent dies mid-work (network hiccup, model timeout, whatever)
+// Next time:
+
+const resumed = await client.resumeSession(
+  '.squad/sessions/backend-auth-001.json'
+);
+
+// Backend wakes up knowing:
+// - What the task was
+// - What it already wrote (file system has the changes)
+// - Where it was in the work
+// - No repetition, no lost context
 ```
 
-> **Appears to hang?** npm resolves `github:` packages via `git+ssh://`. If no SSH agent is running, git prompts for your key passphrase — but npm's progress spinner hides the prompt. Fix: start your SSH agent first (`ssh-add`), or run with `npx --progress=false github:bradygaster/squad` to reveal the prompt. See [Troubleshooting](docs/scenarios/troubleshooting.md) for more.
+---
 
-See [Quick Start](#quick-start) for the full walkthrough.
+## The Cast: Persistent Agent Identity
 
-### Upgrade
+Squad's secret weapon is **casting**. Agents aren't `role-1`, `role-2`. They're Keaton, McManus, Verbal, Fenster, Kujan. Names from *The Usual Suspects* (1995).
 
-Already have Squad? Update Squad-owned files to the latest version without touching your team state:
+Why?
 
-```bash
-npx github:bradygaster/squad upgrade
+1. **Memorable.** Devs say "Keaton handles routing," not "the lead agent coordinates." It sticks.
+2. **Persistent.** Same agent, same name, across every session. You build a relationship with Keaton over time.
+3. **Extensible.** Adding a sixth agent? Cast them from the same universe. The identity pattern carries forward.
+
+The casting engine compiles agent personas from the universe theme. Your `.squad/agents/` folder has the actual files, but the SDK's `CastingEngine` makes the assignment automatic and consistent.
+
+```typescript
+const casting = new CastingEngine({
+  universe: 'usual-suspects',
+  agentCount: 5,
+});
+
+const cast = casting.castTeam({
+  roles: ['lead', 'frontend', 'backend', 'tester', 'scribe'],
+});
+
+// cast = [
+//   { role: 'lead', agentName: 'Keaton', ... },
+//   { role: 'frontend', agentName: 'McManus', ... },
+//   { role: 'backend', agentName: 'Verbal', ... },
+//   { role: 'tester', agentName: 'Fenster', ... },
+//   { role: 'scribe', agentName: 'Kobayashi', ... },
+// ]
 ```
 
-This overwrites `squad.agent.md`, `.ai-team-templates/`, and squad workflow files in `.github/workflows/`. It never touches `.squad/` (or `.ai-team/` for repos that haven't migrated yet) — your team's knowledge, decisions, and casting are safe.
+---
 
-### Migrating to `.squad/`
+## What Gets Created
 
-In v0.5.0, Squad renamed its team state directory from `.ai-team/` to `.squad/`. Existing repos using `.ai-team/` continue to work — Squad detects both and shows a deprecation warning if you're still on `.ai-team/`.
+The SDK doesn't replace your squad directory. It uses it.
 
-**To migrate (two steps):**
-
-```bash
-# Step 1: Upgrade to get the migration command
-npx github:bradygaster/squad upgrade
-
-# Step 2: Rename the directory
-npx github:bradygaster/squad upgrade --migrate-directory
+```
+.squad/
+├── team.md                # Roster — who's on the team
+├── routing.md             # Routing rules — who handles what
+├── decisions.md           # Shared brain — every decision
+├── casting/
+│   ├── policy.json        # Casting config (universe, agent count, etc.)
+│   ├── registry.json      # Persistent name registry
+│   └── history.json       # Who was cast when
+├── agents/
+│   ├── Keaton/
+│   │   ├── charter.md     # Identity, expertise, voice
+│   │   └── history.md     # What Keaton knows about YOUR project
+│   ├── McManus/
+│   │   ├── charter.md
+│   │   └── history.md
+│   └── ... (others)
+├── skills/
+│   ├── react-patterns/
+│   │   └── SKILL.md       # Compressed learnings
+│   ├── auth-flows/
+│   │   └── SKILL.md
+│   └── ... (learned over time)
+├── sessions/              # Persisted sessions for crash recovery
+│   ├── backend-auth-001.json
+│   └── ... (auto-cleanup older than 30 days)
+└── log/                   # Session history (searchable archive)
 ```
 
-Then commit your changes:
+**Commit all of this.** It's your team's memory. Clone the repo, you get the team—with everything they've learned.
 
-```bash
-git add -A
-git commit -m "chore: migrate .ai-team/ → .squad/"
+---
+
+## Growing Your Squad
+
+### Add an Agent
+
+```typescript
+const casting = new CastingEngine({ universe: 'usual-suspects', agentCount: 6 });
+const newCast = casting.castTeam({
+  roles: ['lead', 'frontend', 'backend', 'tester', 'devops', 'scribe'],
+});
+// The SDK creates a new session for the sixth agent automatically.
 ```
 
-**What the migration does:**
-- Renames `.ai-team/` → `.squad/`
-- Updates `.gitignore` and `.gitattributes` references
-- Scrubs email addresses from migrated files (PII cleanup)
+### Remove an Agent
 
-**Timeline:** `.ai-team/` is supported through v0.6.0. Migration becomes required in v1.0.0.
-
-**Safety:** Migration is safe and reversible with `git revert`. Full details in [Migration Guide](docs/migration/v0.5.0-squad-rename.md).
-
-### Insider Program
-
-Want the absolute latest features before they ship? Join the **Insider Program** to run pre-release builds from the `dev` branch.
-
-**Install the insider build:**
-
-```bash
-npx github:bradygaster/squad#insider
+```typescript
+// Update team.md to remove the agent, update casting config
+// Old agent files move to .squad/agents/_alumni/{name}/
+// Knowledge preserved forever, but not active in routing
 ```
 
-**Upgrade an existing squadified repo to insiders:**
+---
+
+## The Tech Stack
+
+| What | Version | Why |
+|------|---------|-----|
+| **Node.js** | ≥ 20.0.0 | Stable async/await, strong TypeScript support |
+| **TypeScript** | 5.7+ | Every tool, session, hook is fully typed |
+| **@github/copilot-sdk** | v0.1.8+ (Technical Preview) | Real-time agent streaming, tool execution |
+| **Vitest** | 3.0+ | Fast, concurrent test runner; great DX |
+| **esbuild** | 0.25+ | Bundling, dead-code elimination |
+
+---
+
+## Testing & Coverage
 
 ```bash
-npx github:bradygaster/squad#insider upgrade
+npm test                # Run all tests (1551 tests across 45 files)
+npm run test:watch     # Watch mode for development
+npm run build          # Compile TypeScript to dist/
+npm run build:cli      # Build + bundle CLI into cli.js
+npm run dev            # Watch TypeScript in background
+npm run lint           # Type check (tsc --noEmit)
 ```
 
-The upgrade command updates Squad-owned files (`squad.agent.md`, workflows, templates) to the latest insider build. Your team state — `.squad/` including `team.md`, agents, decisions, and casting configuration — is always preserved.
-
-**What to expect:** Insider builds may be unstable. They're intended for early adopters, testing, and feedback. New features ship as you code; breaking changes are rare but possible.
-
-**Releases:** The insider release workflow creates GitHub Releases with pre-release tags (e.g., `v0.4.2-insider+abc1234`). To pin a specific tagged version:
-
-```bash
-npx github:bradygaster/squad#v0.4.2-insider+<sha>
-```
-
-**Learn more:** See the [insider branch](https://github.com/bradygaster/squad/tree/insider) for the latest code. Report bugs in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+**Test coverage:** 1,670 tests across 52 test files. Core modules tested:
+- Session lifecycle (create, resume, end)
+- Tool execution and validation
+- Hook pipeline (guards, PII scrubbing, lockouts)
+- Router matching and charter compilation
+- Parallel fan-out spawning
+- Event bus and subscription
+- Casting engine and universe selection
+- Ralph monitoring and health checks
+- Crash recovery and persistence
 
 ---
 
 ## Known Limitations
 
-- **Experimental** — API and file formats may change between versions
-- **Node 22+** — requires Node.js 22.0.0 or later (`engines` field enforced)
-- **GitHub Copilot CLI & VS Code** — Squad is fully supported on CLI and VS Code (v0.4.0+). For platform-specific feature support (model selection, background mode, SQL tool access), see [Client Compatibility Matrix](docs/scenarios/client-compatibility.md)
-- **`gh` CLI required** — GitHub Issues, PRs, Ralph, and Project Boards all need `gh auth login`. Project Boards additionally require `gh auth refresh -s project`
+- **Alpha** — API and file formats may change between versions
+- **Node 20+** — requires Node.js 20.0.0 or later
+- **GitHub Copilot CLI & VS Code** — Squad works on both CLI and VS Code
+- **`gh` CLI required** — GitHub Issues, PRs, Ralph, and Project Boards all need `gh auth login`
 - **Knowledge grows with use** — the first session is the least capable; agents improve as they accumulate history
-- **SSH agent required for install** — `npx github:bradygaster/squad` resolves via `git+ssh://`. If no SSH agent is running, npm's progress spinner hides git's passphrase prompt, making install appear frozen. Fix: start your SSH agent first (`ssh-add`), or use `npx --progress=false github:bradygaster/squad`. See [#30](https://github.com/bradygaster/squad/issues/30)
-
----
-
-## Known Issues
-
-These are known platform-level issues affecting the Squad experience. They're not Squad bugs — they originate in the Copilot CLI runtime — but Squad includes mitigations.
-
-| Issue | Symptom | Status |
-|-------|---------|--------|
-| **`--no-warnings` error** | `error: unknown option '--no-warnings'` appears during agent sessions | Platform bug — the Copilot CLI passes `--no-warnings` to a subprocess that doesn't recognize it. Cosmetic only; does not affect functionality. |
-| **Server error retry loop** | `"response was interrupted due to a server error. retrying"` followed by `"failed to get response from the AI model"` | Context overflow during multi-agent fan-out. Squad v0.5.0 reduces governance prompt size by ~35% and adds compact result presentation to mitigate. |
-| **Silent success** (~7-10% of spawns) | Agent completes all file writes but returns no text response | Platform bug — agent's final turn is a tool call, not text. Squad detects this via filesystem checks and reports `"⚠️ completed (files verified) but response lost."` |
-
-**Workarounds:**
-- If you hit the server error loop, start a new session. The work likely completed — check `.squad/` for recent changes.
-- The `--no-warnings` error is cosmetic and can be safely ignored.
+- **npm distribution only** — Install via `npm install -g @bradygaster/squad-cli` or `npx @bradygaster/squad-cli`. GitHub-native distribution (`npx github:`) is no longer supported.
 
 ---
 
 ## Status
 
-🟣 **Experimental** — v0.5.4. Contributors welcome.
+⚠️ **Experimental** — v0.8.x alpha. APIs and file formats may change between versions. We'd love your feedback — if you encounter issues, please [file a bug report](https://github.com/bradygaster/squad/issues/new).
 
-Conceived by [@bradygaster](https://github.com/bradygaster).
+**Conceived by** [@bradygaster](https://github.com/bradygaster).
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## License
+
+MIT

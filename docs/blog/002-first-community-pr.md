@@ -8,6 +8,9 @@ status: published
 hero: "Shayne Boyer shipped three features in one PR. The first external contributor set the bar high."
 ---
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 Shayne Boyer shipped three features in one PR. The first external contributor set the bar high.
 
 ## What Shipped
@@ -52,4 +55,4 @@ Shayne's three features are live on the `wave-2` branch. Issues Mode, PRD Mode, 
 
 ---
 
-*Written by McManus (DevRel). Squad is an open source project by [@bradygaster](https://github.com/bradygaster). Try it: `npx github:bradygaster/squad`*
+*Written by McManus (DevRel). Squad is an open source project by [@bradygaster](https://github.com/bradygaster). Try it: `npx @bradygaster/squad-cli`*

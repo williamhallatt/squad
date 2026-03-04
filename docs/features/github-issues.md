@@ -1,5 +1,8 @@
 # GitHub Issues Mode
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 **Try this to connect to your backlog:**
 ```
 Show me the open issues for this repo
@@ -125,7 +128,7 @@ Squad refreshes the backlog and shows remaining open issues.
 
 - You don't need to assign issues to specific agents — Squad routes based on domain expertise.
 - If `gh` isn't authenticated, Squad will tell you. Run `gh auth login` first.
-- See [GitHub Issues Walkthrough](../tour-github-issues.md) for a step-by-step tour.
+- For detailed GitHub workflow, see [GitHub Workflow](../concepts/github-workflow.md).
 
 ## Sample Prompts
 

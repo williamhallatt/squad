@@ -10,22 +10,25 @@ hero: "v0.4.0 ships VS Code support, GitHub Projects integration, real-time agen
 
 # v0.4.0: Squad Works Everywhere, Talks to You, and Brings Friends
 
+> ⚠️ **Experimental** — Squad is alpha software. APIs, commands, and behavior may change between releases.
+
+
 > _Squad now runs inside VS Code. Agents post progress updates as they work. MCP tools unlock GitHub, Trello, Azure, and your own infrastructure. When adding teammates, Squad finds the right plugins. And we dropped token costs by 70%._
 
 ## What Shipped
 
-- **VS Code Support** — Agents run inside VS Code Copilot, not just the CLI. Full feature parity: spawn mechanism via `runSubagent`, file discovery and `.ai-team/` access, background execution, parallel sub-agents. Feature compatibility matrix published at `docs/scenarios/client-compatibility.md`. _(Verbal + Fenster)_
+- **VS Code Support** — Agents run inside VS Code Copilot, not just the CLI. Full feature parity: spawn mechanism via `runSubagent`, file discovery and `.squad/` access, background execution, parallel sub-agents. Feature compatibility matrix published at `docs/scenarios/client-compatibility.md`. _(Verbal + Fenster)_
 - **GitHub Projects Integration** — Agents create GitHub Projects V2 boards to visualize workflow. Work items move through Todo → In Progress → Done. Agents track their own status without manual board updates. _(Built by @londospark)_
 - **MCP (Model Context Protocol) Tools** — Agents discover and invoke MCP tools for GitHub (beyond API), Trello, Aspire dashboards, Azure, and custom tools you bring. Discovery is automatic. Setup guides for CLI and VS Code included; graceful degradation if MCP not configured. _(Built by @csharpfritz)_
 - **Agent Progress Updates** — Long-running tasks emit `[MILESTONE]` markers. The coordinator polls every 30 seconds and relays updates to you as 📍 status messages. No more wondering if anything is happening. _(Built by Fenster)_
 - **Squad Pings You (Notifications)** — Agents can notify you on Teams, iMessage, Discord, or via webhook when they need input. Zero infrastructure in Squad core — bring your own MCP notification server. Teams is the primary path with copy-paste config. _(Built by @csharpfritz)_
 - **Plugin Marketplace** — When onboarding new team members, Squad browses configured plugin marketplaces (e.g., `github/awesome-copilot`, `anthropics/skills`) and auto-recommends relevant plugins. React frontend? It finds React patterns. Azure DevOps? It finds the Azure plugin. Full CLI: `squad plugin marketplace add/remove/list/browse`. _(Built by @GreenCee)_
 - **Context Window Optimization** — `decisions.md` pruned from 298KB (80K tokens) to 50KB. Spawn templates collapsed from 3 to 1. Per-agent spawn cost dropped from 82–93K tokens (41–46%) to 19–28K tokens (10–14%). _(Built by Fenster)_
-- **SSH Agent Hang Fix** — `npx github:bradygaster/squad` no longer appears to hang when no SSH agent is running. Root cause was npm spinner burying the passphrase prompt. Documented workaround: `--progress=false` or start SSH agent first. _(Built by @dnoriegagoodwin)_
+- **SSH Agent Hang Fix** — `npx github:bradygaster/squad` no longer appears to hang when no SSH agent is running. Root cause was npm spinner burying the passphrase prompt. This issue is now moot with npm-only distribution (`npm install -g @bradygaster/squad-cli`). _(Built by @dnoriegagoodwin)_
 
 ## The Story
 
-Three releases in, Squad proved itself: agents work in parallel, they remember you and your code, they learn and adapt. But Squad was locked to one environment — the CLI. Copy the `.ai-team/` folder to VS Code? Agents couldn't see it. Run on a laptop without SSH agent configured? The spinner hid the passphrase prompt.
+Three releases in, Squad proved itself: agents work in parallel, they remember you and your code, they learn and adapt. But Squad was locked to one environment — the CLI. Copy the `.squad/` folder to VS Code? Agents couldn't see it. Run on a laptop without SSH agent configured? The spinner hid the passphrase prompt.
 
 v0.4.0 is about breaking those walls.
 
