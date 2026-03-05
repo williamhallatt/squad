@@ -172,3 +172,34 @@ What a real user would encounter that no test catches:
 3. [CORRECTED] Fixed timestamp format on public readiness entry — changed from mixed ISO-T format to standard (2026-02-24) for consistency with other history entries
 
 **Status:** Clean after corrections.
+
+### Squad Migrate E2E Tests — 2025-03-05
+
+**Requested by:** William Hallatt — test coverage for `squad migrate` command and shell reinit guard bug fix from branch `williamhallatt/197-migration-experience`.
+
+**Context:** The migrate command was added to safely upgrade .squad/ directories (backup → clean → reinit → restore). A critical bug where re-launching shell after migrate would trigger re-initialization (overwriting agent files) was fixed by cleaning up `.first-run` and `.init-prompt` markers after migration.
+
+**Tests created:** `test/migrate-e2e.test.ts` — 23 tests, all passing.
+
+#### Test Coverage (6 groups)
+1. **--dry-run:** Exit 0, outputs [dry-run] marker, no backups created, .squad/ untouched (3 tests)
+2. **Full migrate flow:** Creates backup, preserves user files (agents/, team.md), removes .first-run/.init-prompt markers (6 tests)
+3. **--restore (auto-detect):** Finds latest .squad-backup-*, restores content correctly (3 tests)
+4. **--restore <path>:** Works with relative and absolute paths (3 tests)
+5. **No .squad/ directory:** Fresh init path works (creates .squad/, .first-run IS present since it's genuinely first run) (3 tests)
+6. **Shell reinit guard:** Verifies .first-run/.init-prompt cleanup after migrate prevents unwanted shell reinit (5 tests)
+
+#### Key Implementation Details
+- Used `execFileSync` (not node-pty) since migrate is non-interactive
+- Built CLI at `packages/squad-cli/dist/cli-entry.js` instead of root `index.js` (which has CJS syntax despite package.json type:module)
+- Helper `createPopulatedSquadDir()` scaffolds realistic post-init .squad/ with agents, charters, history
+- Tests validate filesystem state before/after migrate (marker files, backup dirs, user content preservation)
+- Important behavior: fresh init via migrate (no existing .squad/) DOES create .first-run (correct), but migrating existing .squad/ removes it (prevents shell reinit)
+
+#### Learnings
+1. **CLI entry points matter:** Root index.js is CJS syntax but package.json has type:module, causing syntax errors. Built CLI works correctly.
+2. **Marker cleanup location:** migrate.ts lines 246-251 clean up .first-run/.init-prompt ONLY after migrating existing .squad/, not during fresh init path (which is correct behavior).
+3. **Test isolation:** temp dirs + afterEach cleanup ensure no cross-test pollution.
+4. **Backup validation:** Verified both auto-detect (latest .squad-backup-*) and explicit path restore scenarios work.
+
+**Test execution:** 23/23 passing in ~10s. All scenarios covered.

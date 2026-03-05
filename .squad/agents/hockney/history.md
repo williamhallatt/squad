@@ -803,3 +803,26 @@ All labeled squad:hockney for routing. Each issue includes: what's missing, why 
 - **Key finding:** The SDK dist was stale (still had old `.squad-templates` path). Source was already updated but `npm run build` hadn't been run. Rebuilt SDK to verify test passes.
 - **Pre-existing failure:** Line 94 gitattributes content mismatch (unrelated, not introduced by this change).
 - **Lesson:** On Windows, use `join(root, '.squad', 'templates')` not `join(root, '.squad/templates')` — forward-slash segments in `join` args work on Node but it's better practice to use separate args.
+
+### Migration command test coverage — branch williamhallatt/197-migration-experience (2026-03-05)
+**Status:** Complete — 30 tests added, all pass.
+- **Files created:**
+  - `test/migrate-command.test.ts` (19 tests for `runMigrate`)
+  - `test/cast-guard.test.ts` (11 tests for `createTeam` guard logic)
+- **Coverage highlights:**
+  - `findLatestBackup` tested via `--restore` flag with 0, 1, and 3 backups
+  - Dry-run mode: no filesystem changes, no sdkInitSquad call
+  - Normal migration: backup creation, SQUAD_OWNED removal, USER_OWNED restoration, first-run marker cleanup
+  - Legacy `.ai-team/` migration
+  - Auto-rollback on sdkInitSquad failure
+  - Explicit and auto-detected restore paths
+  - Cast guard: protects non-empty charter.md and history.md from overwrite; writes when absent or whitespace-only
+- **Key patterns:**
+  - `vi.spyOn(process, 'exit').mockImplementation(() => { throw new Error() })` to test error paths without actually exiting
+  - `vi.mock('@bradygaster/squad-sdk')` to isolate CLI logic from SDK behavior
+  - `mkdtempSync(join(tmpdir(), ...))` for clean temp dirs per test
+- **Learnings:**
+  - Migration has solid error handling (auto-rollback is critical)
+  - Cast guard protects against accidental overwrite after migrate (BUG FIX)
+  - Tests are structural — they verify the logic without caring about console output
+  - All 30 tests pass on first run (implementation is solid)

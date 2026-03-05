@@ -2024,3 +2024,85 @@ Verified 3 files already consistent:
 
 **Implications:** Users upgrading from v0.5.4 or recovering from `.squad/` corruption now have clear, consistent guidance pointing to migrate command.
 
+# Hockney — Migration Test Patterns
+
+**Date:** 2026-03-05  
+**Status:** Complete  
+**Requestor:** williamhallatt
+
+## Decision
+
+Test suite patterns for migration command and cast guard are now standardized:
+
+### 1. Error Path Testing (process.exit)
+
+Migration calls `process.exit(1)` on error. Mock pattern:
+
+```typescript
+const exitSpy = vi.spyOn(process, 'exit').mockImplementation((code?: any) => {
+  throw new Error(`process.exit: ${code}`);
+});
+
+await expect(runMigrate(...)).rejects.toThrow('process.exit: 1');
+```
+
+### 2. SDK Mocking for CLI Commands
+
+CLI commands that call SDK functions must mock them:
+
+```typescript
+vi.mock('@bradygaster/squad-sdk', () => ({
+  initSquad: vi.fn(async (opts) => {
+    // Simulate filesystem changes
+    mkdirSync(join(opts.teamRoot, '.squad'), { recursive: true });
+  }),
+}));
+```
+
+### 3. Temp Directory Hygiene
+
+Use OS temp dirs with cleanup:
+
+```typescript
+beforeEach(() => {
+  testDir = mkdtempSync(join(tmpdir(), 'squad-migrate-test-'));
+});
+
+afterEach(() => {
+  if (existsSync(testDir)) {
+    rmSync(testDir, { recursive: true, force: true });
+  }
+});
+```
+
+### 4. Guard Logic Testing (cast.ts)
+
+Test both the positive and negative cases:
+- **Negative:** File exists with content → guard fires, no overwrite
+- **Positive:** File absent or empty → write happens
+
+```typescript
+it('should NOT overwrite an existing non-empty charter.md', async () => {
+  writeFileSync(join(agentDir, 'charter.md'), '# Real Charter\n');
+  await createTeam(testDir, proposal);
+  expect(readFileSync(join(agentDir, 'charter.md'), 'utf8')).toBe('# Real Charter\n');
+});
+```
+
+## Coverage Achieved
+
+- **19 tests** for `migrate.ts` (dry-run, normal flow, legacy `.ai-team/`, rollback, restore)
+- **11 tests** for `cast.ts` guard logic (charter.md and history.md protection)
+- **All 30 tests pass** on first run
+
+## Why This Matters
+
+1. Migration is a high-risk operation (user data). Tests verify rollback on error.
+2. Cast guard prevents accidental overwrites when `/init` is triggered after migrate.
+3. These patterns are reusable for future CLI command tests.
+
+## Related
+
+- Branch: `williamhallatt/197-migration-experience`
+- Files: `test/migrate-command.test.ts`, `test/cast-guard.test.ts`
+- Blocking: None — tests verify existing implementation
