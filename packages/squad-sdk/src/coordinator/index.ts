@@ -48,7 +48,7 @@ import type { EventBus } from '../runtime/event-bus.js';
 import type { AgentSessionManager, AgentCharter } from '../agents/index.js';
 import type { HookPipeline } from '../hooks/index.js';
 import type { ToolRegistry } from '../tools/index.js';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '../runtime/otel-api.js';
 
 const tracer = trace.getTracer('squad-sdk');
 

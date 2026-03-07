@@ -1,6 +1,6 @@
 {
   "name": "@bradygaster/squad-cli",
-  "version": "0.8.21-preview.7",
+  "version": "0.8.21-preview.9",
   "description": "Squad CLI — Command-line interface for the Squad multi-agent runtime",
   "type": "module",
   "bin": {
@@ -152,7 +152,8 @@
   "dependencies": {
     "@bradygaster/squad-sdk": "*",
     "ink": "^6.8.0",
-    "react": "^19.2.4"
+    "react": "^19.2.4",
+    "vscode-jsonrpc": "^8.2.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

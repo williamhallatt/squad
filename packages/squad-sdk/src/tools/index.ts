@@ -14,7 +14,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { SquadTool, SquadToolResult } from '../adapter/types.js';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '../runtime/otel-api.js';
 
 const tracer = trace.getTracer('squad-sdk');
 

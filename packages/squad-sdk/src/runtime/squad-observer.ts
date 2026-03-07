@@ -10,7 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { SpanStatusCode } from '@opentelemetry/api';
+import { SpanStatusCode } from './otel-api.js';
 import { getTracer } from './otel.js';
 import { EventBus, type SquadEvent } from './event-bus.js';
 

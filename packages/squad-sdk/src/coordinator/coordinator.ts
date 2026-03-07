@@ -26,7 +26,7 @@ import {
 } from '../config/routing.js';
 import type { RoutingConfig as RuntimeRoutingConfig } from '../runtime/config.js';
 import { spawnParallel, type AgentSpawnConfig, type SpawnResult, type FanOutDependencies } from './fan-out.js';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '../runtime/otel-api.js';
 
 const tracer = trace.getTracer('squad-sdk');
 

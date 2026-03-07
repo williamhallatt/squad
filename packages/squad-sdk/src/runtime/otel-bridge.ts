@@ -8,7 +8,7 @@
  * @module runtime/otel-bridge
  */
 
-import { SpanStatusCode } from '@opentelemetry/api';
+import { SpanStatusCode } from './otel-api.js';
 import { getTracer } from './otel.js';
 import type { TelemetryEvent, TelemetryTransport } from './telemetry.js';
 import type { EventBus, UnsubscribeFn, SquadEvent } from './event-bus.js';

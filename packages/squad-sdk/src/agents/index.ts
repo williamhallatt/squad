@@ -11,7 +11,7 @@ import { join, dirname, basename } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { parseCharterMarkdown } from './charter-compiler.js';
 import { EventBus } from '../client/event-bus.js';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '../runtime/otel-api.js';
 import { recordAgentSpawn, recordAgentDuration, recordAgentError, recordAgentDestroy } from '../runtime/otel-metrics.js';
 
 const tracer = trace.getTracer('squad-sdk');

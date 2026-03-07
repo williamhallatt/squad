@@ -8,7 +8,7 @@
  */
 
 import { CopilotClient } from "@github/copilot-sdk";
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '../runtime/otel-api.js';
 import { recordSessionCreated, recordSessionClosed, recordSessionError } from '../runtime/otel-metrics.js';
 import type { 
   SquadSessionConfig, 

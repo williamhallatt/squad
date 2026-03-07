@@ -8,14 +8,8 @@
  * @module runtime/otel
  */
 
-import { trace, metrics, type Tracer, type Meter, DiagConsoleLogger, DiagLogLevel, diag } from '@opentelemetry/api';
-import { NodeSDK, resources, metrics as sdkMetrics } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-grpc';
-import { createRequire } from 'module';
-
-const { Resource } = resources;
-const { PeriodicExportingMetricReader } = sdkMetrics;
+import { trace, metrics, diag, DiagConsoleLogger, DiagLogLevel, type Tracer, type Meter } from './otel-api.js';
+import { createRequire } from 'node:module';
 
 // ============================================================================
 // Types
@@ -37,7 +31,7 @@ export interface OTelConfig {
 // Internal state
 // ============================================================================
 
-let _sdk: NodeSDK | undefined;
+let _sdk: { start(): void; shutdown(): Promise<void> } | undefined;
 let _tracingActive = false;
 let _metricsActive = false;
 
@@ -49,7 +43,8 @@ function resolveEndpoint(config?: OTelConfig): string | undefined {
   return config?.endpoint ?? process.env['OTEL_EXPORTER_OTLP_ENDPOINT'] ?? undefined;
 }
 
-function buildResource(config?: OTelConfig): InstanceType<typeof Resource> {
+function buildResource(config?: OTelConfig, Resource?: any): any { // eslint-disable-line @typescript-eslint/no-explicit-any
+  if (!Resource) return undefined;
   const req = createRequire(import.meta.url);
   let version = 'unknown';
   try {
@@ -75,14 +70,33 @@ function ensureSDK(config?: OTelConfig): void {
   const endpoint = resolveEndpoint(config);
   if (!endpoint) return;
 
+  // Lazy-load optional OTel SDK packages via createRequire (#247)
+  const req = createRequire(import.meta.url);
+  let NodeSDK: any, Resource: any, PeriodicExportingMetricReader: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  let OTLPTraceExporter: any, OTLPMetricExporter: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  try {
+    const sdkNode = req('@opentelemetry/sdk-node');
+    NodeSDK = sdkNode.NodeSDK;
+    Resource = sdkNode.resources.Resource;
+    PeriodicExportingMetricReader = sdkNode.metrics.PeriodicExportingMetricReader;
+    OTLPTraceExporter = req('@opentelemetry/exporter-trace-otlp-grpc').OTLPTraceExporter;
+    OTLPMetricExporter = req('@opentelemetry/exporter-metrics-otlp-grpc').OTLPMetricExporter;
+  } catch {
+    // Optional SDK packages not installed — telemetry stays disabled
+    if (config?.debug || process.env['SQUAD_DEBUG'] === '1') {
+      console.error('[squad-otel] Optional OTel SDK packages not available. Telemetry disabled.');
+    }
+    return;
+  }
+
   const debugMode = config?.debug || process.env['SQUAD_DEBUG'] === '1';
   if (debugMode) {
     diag.setLogger(new DiagConsoleLogger(), config?.debug ? DiagLogLevel.DEBUG : DiagLogLevel.WARN);
   }
 
-  const resource = buildResource(config);
+  const resource = buildResource(config, Resource);
 
-  _sdk = new NodeSDK({
+  const sdk = new NodeSDK({
     resource,
     traceExporter: new OTLPTraceExporter({ url: endpoint }),
     metricReader: new PeriodicExportingMetricReader({
@@ -92,9 +106,9 @@ function ensureSDK(config?: OTelConfig): void {
   });
 
   try {
-    _sdk.start();
+    sdk.start();
+    _sdk = sdk;
   } catch (err) {
-    _sdk = undefined;
     if (debugMode) {
       const msg = err instanceof Error ? err.message : String(err);
       console.error(`[squad-otel] SDK start failed: ${msg}`);

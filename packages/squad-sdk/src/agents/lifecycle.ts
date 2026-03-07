@@ -14,7 +14,7 @@ import { resolveModel, type ModelResolutionOptions, type TaskType } from './mode
 import { ConfigurationError, SessionLifecycleError } from '../adapter/errors.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '../runtime/otel-api.js';
 import { recordAgentSpawn, recordAgentDestroy, recordAgentError } from '../runtime/otel-metrics.js';
 
 const tracer = trace.getTracer('squad-sdk');
