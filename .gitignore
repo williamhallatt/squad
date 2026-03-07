@@ -5,9 +5,11 @@ dist/
 coverage/
 .vscode/
 *.log
-# Squad: ignore generated logs
+# Squad: ignore runtime state (logs, inbox, sessions)
 .squad/orchestration-log/
 .squad/log/
+.squad/decisions/inbox/
+.squad/sessions/
 .squad/config.json
 .test-cli-*
 # Docs site generated files

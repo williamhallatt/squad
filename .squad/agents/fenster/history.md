@@ -696,3 +696,18 @@ px tsx), it logs a test-mode warning but still validates config — useful for d
 - A `prestart:func` npm script ensures `func start` always gets fresh compiled JS, preventing stale-build confusion.
 
 📌 Team update (2026-03-06): Fixed Azure Function sample — added missing `main` field to package.json, updated `start` script to build-then-run, added build documentation to README. Root cause was runtime couldn't discover function registration without `main` pointing to compiled output. — decided by Fenster
+
+## Issue #228 — Squad Guard vs Scribe Runtime State
+
+**Problem:** Scribe's commit step (`git add .squad/`) stages runtime state files (orchestration-log/, log/, decisions/inbox/, sessions/) on feature branches. When PRs target main, the squad-main-guard workflow catches them — causing CI failures that users didn't cause.
+
+**Fix (defense in depth):**
+1. Updated Scribe commit instruction in both `squad.agent.md` files to `git reset HEAD` on forbidden paths after `git add .squad/`
+2. Added `.squad/decisions/inbox/` and `.squad/sessions/` to `.gitignore` entries in `init.ts` (orchestration-log/ and log/ were already covered)
+3. Updated init test to verify all four runtime state paths
+
+## Learnings
+
+- The squad-main-guard blocks ALL `.squad/` paths from protected branches — this is correct. Runtime state must be prevented at the commit stage, not the guard stage.
+- `.gitignore` is first-line defense (prevents staging new files) but doesn't help for already-tracked files. The `git reset HEAD` in the Scribe instruction is the belt-and-suspenders fix.
+- Four runtime state paths to always exclude: `orchestration-log/`, `log/`, `decisions/inbox/`, `sessions/`
