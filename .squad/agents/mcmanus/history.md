@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T20-04-20Z): GitHub Actions npm publishing automation established. New publish.yml workflow triggers on GitHub Release creation. NPM_TOKEN secret required in repo settings. CI/CD publishing is now authoritative method; local npm publish deprecated. — coordinated by Scribe
+
 📌 Team update (2026-03-07T17:35:45Z): Issue #251 — SDK-First docs complete (decision tree, migration guide, defineSkill() reference). Follows Brady's lighthearted voice directive. Config mode documentation added. Ready for v0.8.21 release. — decided by McManus
 
 
@@ -35,6 +37,30 @@
 **Next Sprint:** Brady to prioritize High-priority items before v1 release; McManus available for execution.
 
 ## Learnings
+
+### 2026-03-13: GitHub Pages Docs Deployment
+
+**Status:** Complete. Deployed docs site to production.
+
+**Summary:**
+Brady requested a release-time deployment of the GitHub Pages documentation site. The Squad docs infrastructure:
+- **Build pipeline:** `squad-docs.yml` workflow in `.github/workflows/` — triggers on push to main (docs/** changes) or manual dispatch
+- **Build script:** `docs/build.js` (Node.js) — renders markdown sections → static HTML with navigation + search index
+- **Deployment:** GitHub Pages via Actions (`actions/deploy-pages@v4`) — automatic after successful build
+- **Site URL:** https://bradygaster.github.io/squad/
+
+**Deployment executed:**
+1. Triggered workflow via `gh workflow run squad-docs.yml --ref main`
+2. Build completed in 28s (checkout → setup Node 22 → install markdown-it → render docs → upload artifact)
+3. Deploy completed in 11s (automatic Pages deployment to live environment)
+4. **Verification:** Site live and responsive (HTTP 200)
+
+**Learnings:**
+- Docs build is **fast & deterministic** (28s total). Zero manual steps required. Workflow is well-designed for frequent deploys.
+- Navigation + search index auto-generated from directory structure + frontmatter. Easy to add docs without config changes.
+- GitHub Pages deployment fully automated—no branch switching or manual git pushes needed. Infrastructure-as-code best practice.
+
+**Next:** Site is live and ready for v0.8.21 release communication.
 
 ### 2026-03-13: Community Discussions — Terminal Flickering & Skill-Based Orchestration
 
@@ -1434,6 +1460,7 @@ Multi-agent build of Rock-Paper-Scissors game with 10 AI strategies, Docker infr
 - Future-tense framing: commands documented as designed
 
 **Key messaging decision:** Markdown is the default, SDK is the upgrade path. This aligns with Brady's CLI-first strategy and reduces user surprise (no unexpected build step).
+
 
 
 

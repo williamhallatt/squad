@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T20-04-20Z): GitHub Actions npm publishing automation established. New publish.yml workflow triggers on GitHub Release creation. NPM_TOKEN secret required in repo settings. CI/CD publishing is now authoritative method; local npm publish deprecated. — coordinated by Scribe
+
 📌 Team update (2026-03-07T05:56:56Z): Issue triage complete — Migration wave grouping: #197 (shell init circular error), #231 (formal `squad migrate` CLI), #126 (migration warnings + regressions). Batch together for cohesive migration UX. Also: #240 (ADO work item config) is fix-now blocker. — decided by Keaton
 # Project Context
 
@@ -169,3 +171,4 @@ Brady directed: stop distributing via npx github:. All distribution is now npm-o
 4. Line 138: Date "(2026-07)" → [CORRECTED] "(2026-03-02 continued)" (date skew — research was same day as team update, not July)
 
 **Status:** 4 corrections applied. History is now clean and consistent with decisions.md npm-only policy.
+

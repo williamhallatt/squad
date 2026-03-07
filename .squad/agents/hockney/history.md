@@ -1,3 +1,7 @@
+📌 Team update (2026-03-07T20-04-20Z): GitHub Actions npm publishing automation established. New publish.yml workflow triggers on GitHub Release creation. NPM_TOKEN secret required in repo settings. CI/CD publishing is now authoritative method; local npm publish deprecated. — coordinated by Scribe
+
+📌 Team update (2026-03-07T23:51:00Z): RELEASE VERIFICATION COMPLETE. Build clean (exit 0). Full test suite: 145 test files, 3768 passing, 3 todo, 0 failures. Duration: 43.22s. All quality gates green. Safe to ship v0.8.21-preview.17. — decided by Hockney
+
 📌 Team update (2026-03-07T17:35:45Z): Issues #249/#250/#251/#255 — 66 new tests (init-sdk.test.ts, migrate.test.ts, builders.test.ts). All passing. 3768 total tests, 0 failures. No regressions. Test suite validates all SDK-First features production-ready. — decided by Hockney
 
 
@@ -211,4 +215,5 @@
 - Frame rate increases above 7fps threshold
 - NO_COLOR handling breakage
 - Timer cleanup issues
+
 

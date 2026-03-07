@@ -5913,3 +5913,75 @@ if (config.skills && config.skills.length > 0) {
   - `.squad/skills/client-compatibility/SKILL.md` (new)
   - `.squad/skills/reviewer-protocol/SKILL.md` (new)
 
+
+
+### 2026-03-07T19-59-58Z: User directive
+**By:** bradygaster (via Copilot)
+**What:** Prefer GitHub Actions for npm publish over local npm publish. Set up a secret in the GitHub repo and facilitate npm deployment via a CI action instead of running it locally.
+**Why:** User request - captured for team memory
+
+
+# npm Publish Automation via GitHub Actions
+
+**Date:** 2026-03-16  
+**Author:** Kobayashi  
+**Status:** Implemented  
+
+## Context
+
+Brady requested automated npm publishing via GitHub Actions instead of manual local publishes. Manual publishing is error-prone (version mismatches, forgotten packages, incorrect tags) and lacks audit trail.
+
+## Decision
+
+Consolidated npm publishing into single GitHub Actions workflow (`publish.yml`) that triggers automatically on GitHub Release creation.
+
+## Implementation
+
+### Workflow Architecture
+
+**Event Chain:**
+1. Code merged to `main` (via squad-promote or direct merge)
+2. `squad-release.yml` creates tag + GitHub Release (if version bumped)
+3. `publish.yml` triggers on `release.published` event
+4. Publishes @bradygaster/squad-sdk → @bradygaster/squad-cli (correct order)
+
+**Manual Override:**
+- Supports `workflow_dispatch` for ad-hoc publishes
+- Requires version input (e.g., "0.8.21")
+
+### Safety Features
+
+1. **Version verification:** Workflow validates package.json version matches release tag
+2. **Publication verification:** Confirms packages visible on npm after publish
+3. **Provenance attestation:** npm packages include cryptographic proof of origin
+4. **Sequential publish:** SDK publishes first (CLI depends on it)
+
+### Changes Made
+
+- Updated `.github/workflows/publish.yml` with new trigger logic
+- Deprecated `.github/workflows/squad-publish.yml` (redundant)
+- Added version/publication verification steps
+
+## Requirements
+
+**NPM_TOKEN Secret:**
+Brady must create Automation token at https://www.npmjs.com/settings/{username}/tokens and add to GitHub repo secrets.
+
+## Implications
+
+- **Releases:** Automatic npm publish when GitHub Release created (zero manual steps)
+- **Audit:** All publishes logged in GitHub Actions (who, when, what version)
+- **Security:** Provenance attestation strengthens supply chain trust
+- **Error reduction:** Version mismatches caught before publish
+
+## Rollback Strategy
+
+- npm allows unpublish within 72 hours of publication
+- Manual `npm unpublish @bradygaster/squad-{pkg}@{version}` if issues detected
+
+## Related Files
+
+- `.github/workflows/publish.yml` — npm publish workflow
+- `.github/workflows/squad-release.yml` — GitHub Release creation
+- `.squad/agents/kobayashi/history.md` — Implementation details
+
