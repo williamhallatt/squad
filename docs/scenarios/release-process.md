@@ -89,18 +89,18 @@ git commit -m "chore: remove forbidden paths for preview branch"
 git push -f origin preview
 ```
 
-### Step 3: Verify Guard Passes
+### Step 3: Review and Test
 
-The guard workflow (`.github/workflows/squad-main-guard.yml`) runs automatically on any PR to `preview` or `main`. Check the workflow run in GitHub Actions:
+Verify your release PR is ready for merge by checking CI status in GitHub. Ensure all tests pass and code review is complete:
 
 ```bash
-# View workflow runs for the preview branch
-gh run list --branch preview --status completed
+# View PR status
+gh pr view --web
 ```
 
-Expected output: ✅ All checks pass (no forbidden files found).
+Expected output: ✅ All checks pass and PR is approved.
 
-If the guard fails, see [Testing the Guard Workflow](#testing-the-guard-workflow) for debugging.
+If checks fail, review the logs and fix any issues.
 
 ### Step 4: Test on Preview
 
@@ -393,222 +393,34 @@ The repository enforces protection rules on `main` and `preview` to prevent acci
 
 | Branch | Rule | Effect |
 |--------|------|--------|
-| `main` | Require guard workflow to pass | PRs with `.ai-team/` or team-docs/ (except blog) are **blocked** |
 | `main` | Require PR review | All PRs require at least 1 approval |
 | `main` | Require status checks to pass | Tests must pass before merge allowed |
-| `preview` | Require guard workflow to pass | PRs with `.ai-team/` or team-docs/ (except blog) are **blocked** |
+| `preview` | Require status checks to pass | Tests must pass before merge allowed |
 
-### The Guard Workflow
 
-**File:** `.github/workflows/squad-main-guard.yml`
+## File Integrity
 
-**When it runs:** On any PR to `main` or `preview` (events: `opened`, `synchronize`, `reopened`)
-
-**What it checks:**
-
-```javascript
-// Forbidden on main and preview:
-✗ .ai-team/**          (zero exceptions — team state never ships)
-✗ team-docs/**         (zero exceptions — internal team docs never ship)
-
-// Allowed everywhere:
-✓ index.js             (distribution)
-✓ squad.agent.md       (distribution)
-✓ templates/**/*       (distribution)
-✓ docs/**/*            (distribution)
-✓ test/**/*            (distribution)
-✓ CHANGELOG.md         (distribution)
-✓ README.md            (distribution)
-✓ package.json         (distribution)
-✓ .github/workflows/** (distribution)
-```
-
-**Failure behavior:** If forbidden files detected:
-
-```
-## 🚫 Forbidden files detected in PR to main
-
-The following files must NOT be merged into `main`.
-`.ai-team/` is runtime team state — it belongs on dev branches only.
-`team-docs/` is internal team content — it belongs on dev branches only.
-
-### Forbidden files found:
-- `.ai-team/agents/neo/history.md`
-- `.ai-team/decisions.md`
-- `team-docs/internal/roadmap.md`
-
-### How to fix:
-git rm --cached -r .ai-team/
-git rm --cached -r team-docs/
-git commit -m "chore: remove forbidden paths from PR"
-git push
-```
-
-**Success behavior:** If all files pass:
-
-```
-✅ No forbidden paths found in PR — all clear.
-```
-
----
-
-## Testing the Guard Workflow
-
-Verify the guard blocks forbidden files. Use a sacrificial PR.
-
-### Test 1: Verify Guard Blocks .ai-team/
-
-1. **Create a test branch:**
-
-```bash
-git checkout -b test/guard-ai-team-block
-```
-
-2. **Add a fake .ai-team/ file:**
-
-```bash
-mkdir -p .ai-team/agents/test
-echo "test content" > .ai-team/agents/test/history.md
-git add .ai-team/agents/test/history.md
-git commit -m "test: add .ai-team/ file to verify guard blocks it"
-git push -u origin test/guard-ai-team-block
-```
-
-3. **Create PR to main:**
-
-```bash
-gh pr create --base main --title "test: guard should block .ai-team/" \
-  --body "This PR tests that the guard blocks .ai-team/ files"
-```
-
-4. **Check the PR status:**
-
-```bash
-gh pr view <PR_NUMBER>
-# or view in browser
-gh pr view <PR_NUMBER> --web
-```
-
-Expected: ❌ Guard workflow reports forbidden files. PR cannot merge until `.ai-team/` is removed.
-
-5. **Clean up the PR:**
-
-```bash
-git rm --cached -r .ai-team/
-git commit -m "fix: remove .ai-team/ file"
-git push
-```
-
-Expected: ✅ Guard workflow passes. PR is now mergeable.
-
-6. **Delete the branch:**
-
-```bash
-gh pr close --delete-branch
-git checkout dev && git branch -D test/guard-ai-team-block
-```
-
-### Test 2: Verify Guard Blocks Internal team-docs/
-
-1. **Create a test branch:**
-
-```bash
-git checkout -b test/guard-team-docs-block
-```
-
-2. **Add an internal team-docs file:**
-
-```bash
-mkdir -p team-docs/internal
-echo "internal roadmap" > team-docs/internal/roadmap.md
-git add team-docs/internal/roadmap.md
-git commit -m "test: add internal team-docs/ file"
-git push -u origin test/guard-team-docs-block
-```
-
-3. **Create PR to preview:**
-
-```bash
-gh pr create --base preview --title "test: guard should block team-docs/internal/" \
-  --body "This PR tests that the guard blocks internal team-docs/ files"
-```
-
-Expected: ❌ Guard blocks `team-docs/internal/roadmap.md`.
-
-4. **Clean up:**
-
-```bash
-git rm --cached -r team-docs/internal/
-git commit -m "fix: remove internal team-docs/"
-git push
-```
-
-Expected: ✅ Guard passes.
-
-5. **Delete the branch:**
-
-```bash
-gh pr close --delete-branch
-```
-
-### Test 3: Verify Guard Blocks team-docs/
-
-1. **Create a test branch:**
-
-```bash
-git checkout -b test/guard-blocks-team-docs
-```
-
-2. **Add a team-docs file:**
-
-```bash
-mkdir -p team-docs
-echo "# Internal Notes" > team-docs/notes.md
-git add team-docs/notes.md
-git commit -m "test: add team-docs file (should be blocked)"
-git push -u origin test/guard-blocks-team-docs
-```
-
-3. **Create PR to main:**
-
-```bash
-gh pr create --base main --title "test: guard should block team-docs/" \
-  --body "This PR tests that all team-docs files are blocked"
-```
-
-Expected: ❌ Guard fails. ALL `team-docs/` content is blocked on main and preview.
-
-4. **Delete the branch:**
-
-```bash
-gh pr close --delete-branch
-```
+Always verify before pushing to main or preview that you have not accidentally included team runtime state files (.squad/, .ai-team/, etc.). These files should only exist on dev branches.
 
 ---
 
 ## Troubleshooting
 
-### Issue: Guard Workflow Failed — Forbidden Files Detected
+### Issue: Forbidden Files Detected in PR
 
-**Error message:** `🚫 Forbidden files detected in PR to main`
+**Problem:** You accidentally committed `.ai-team/` or other team state files to your PR.
 
-**Cause:** You have `.ai-team/` or internal `team-docs/` files in the PR.
-
-**Fix:**
+**Prevention:** Use `.gitignore` rules and verify `git status` before pushing:
 
 ```bash
-# Remove .ai-team/ (keeps local copy)
+# Check what will be committed
+git status
+
+# If you see .ai-team/ or similar, remove it:
 git rm --cached -r .ai-team/
-
-# Remove team-docs/
-git rm --cached -r team-docs/
-
-# Commit and push
-git commit -m "chore: remove forbidden paths"
+git commit -m "chore: remove runtime state files"
 git push
 ```
-
-The guard will re-run automatically. Wait for ✅ pass.
 
 ---
 
@@ -662,7 +474,7 @@ git push origin dev
 
 ### Issue: Missing Workflows in .github/workflows/
 
-**Symptom:** Guard workflow doesn't exist or other Squad workflows missing.
+**Symptom:** Other Squad workflows are missing or accidentally deleted.
 
 **Cause:** Workflows not installed during Squad init, or accidentally deleted.
 
@@ -676,7 +488,6 @@ git push origin dev
 ```
 
 Available Squad workflows:
-- `squad-main-guard.yml` — Blocks forbidden files from main/preview
 - `squad-heartbeat.yml` — Ralph's periodic triage and labeling
 - `squad-issue-assign.yml` — Auto-assign labeled issues
 - `squad-label-enforce.yml` — Enforce label namespace integrity
@@ -795,7 +606,6 @@ Kobayashi, fix this blocked PR:
 
 ## Key Files Reference
 
-- **Guard workflow:** `.github/workflows/squad-main-guard.yml`
 - **Release workflow:** `.github/workflows/release.yml` (if it exists)
 - **Changelog:** `CHANGELOG.md`
 - **Distribution config:** `package.json` (version, files array)
@@ -814,3 +624,4 @@ Kobayashi, fix this blocked PR:
 - **Version in package.json must match git tag.** Keep them in sync.
 - **Communicate releases.** Update team.md, decisions.md, and CHANGELOG.md before shipping.
 - **Use `gh` CLI for everything.** It's faster and more reliable than web UI for scripting.
+

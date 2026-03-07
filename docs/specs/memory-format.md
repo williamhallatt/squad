@@ -436,10 +436,9 @@ Without `mockRestore()`, subsequent tests see the spy instead of real `console.l
 
 **details:**
 
-.ai-team/ is runtime team state, not product. Three enforcement layers:
+.ai-team/ is runtime team state, not product. Two enforcement layers:
 1. `.gitignore` — prevents accidental tracking
-2. `squad-main-guard.yml` — CI blocks PRs containing .ai-team/ paths to main
-3. `package.json` files array — prevents npm distribution even if tracked
+2. `package.json` files array — prevents npm distribution even if tracked
 
 If `.ai-team/` appears in `git status`, the correct fix is:
 ```bash

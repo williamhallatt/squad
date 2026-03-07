@@ -47,6 +47,17 @@
 
 ## Learnings
 
+## 📌 Community Contributors Documentation — 2026-03-07T20:45:00Z
+
+**COMMUNITY CREDIT SYSTEM ESTABLISHED.** Updated CONTRIBUTORS.md to formally recognize external contributors who shaped Squad through issues, discussions, and feature requests.
+
+**Key additions:**
+- **v0.8.21 section expanded:** Added SDK-first work shipped by Fenster (SDK-first init flag), Verbal (defineSkill() builder), Edie (squad migrate command), Hockney (66 new tests), McManus (SDK-first docs)
+- **Community Contributors section:** 19 external contributors credentialed by GitHub handle with linked issues and contribution types
+- **Community highlights:** Notable external impact: @csharpfritz's model-per-agent feature shipped in SDK; @williamhallatt's 4-issue batch spanning UX/docs/bugs; @swnger's discussion led to defineSkill() feature (#255 shipped)
+
+**Recognition principle:** Community contributions aren't just bug reports — they're strategic inputs that shaped architectural decisions (SDK design, model configuration, multi-repo workflows, CLI-first direction). Documenting them builds contributor loyalty and transparency.
+
 ## 📌 Phase 1 Completion — 2026-03-05T21:37:09Z
 
 **PHASE 1 SDK-FIRST COMPLETE.** Keaton's scoping decision + Edie's builders + Fenster's CLI + Hockney's tests + Kujan's OTel assessment + Verbal's coordinator update. 6 agents fanned out in parallel.

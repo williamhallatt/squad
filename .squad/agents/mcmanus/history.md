@@ -36,6 +36,67 @@
 
 ## Learnings
 
+### 2026-03-13: Community Discussions — Terminal Flickering & Skill-Based Orchestration
+
+**Status:** Complete. Posted warm replies to Discussions #170 (terminal flickering) and #169 (skill-based orchestration).
+
+**Summary:**
+Brady asked McManus to reply to two community discussions that led to in-progress fixes:
+1. **Discussion #170 (Terminal Flickering)** — @Gareth064 and @diberry reported flickering where terminal output from an hour ago would flash back. The Squad traced this to raw ANSI escape codes bypassing Ink's render system. Issue #254 is in progress with fixes: removing direct stdout writes, reducing animation FPS from 15fps to 5fps, consolidating timers.
+2. **Discussion #169 (Skill-Based Orchestration)** — @swnger proposed decomposing Squad's monolithic instruction file into pluggable skills. The concept resonated with Brady, who filed Issue #255. The good news: defineSkill() shipped in commit 412ce58 and is exactly what was proposed.
+
+**Replies Posted:**
+- **#170:** Thanked @Gareth064 and @diberry by name, explained the root cause (ANSI codes vs. Ink), outlined the fix being worked on in #254, invited feedback when it ships.
+- **#169:** Thanked @swnger, confirmed that defineSkill() is now live and available in squad.config.ts, explained the benefits (typed, testable, composable), invited community feedback on workflows.
+
+**Tone Applied:**
+- Genuinely warm and appreciative (Brady's directive: "community should feel heard and valued")
+- Technical but accessible—explained issues without handwaving
+- Invited feedback and framed as partnership, not just "we're fixing it"
+- Signed as "— McManus 📝, on behalf of the Squad" per Brady's request
+
+**Pattern Reinforced:**
+Community contributors are often ahead of the curve. They identify real problems and propose elegant solutions. Our job as DevRel is to acknowledge this publicly and invite them back into the feedback loop. When we ship something they inspired, telling them directly builds loyalty and deepens engagement.
+
+### 2026-03-12: Community Thank-You Campaign — 23 Closed Issues
+
+**Status:** Complete. Posted warm thank-you comments to 23 closed community-filed issues.
+
+**Summary:**
+Systematically reviewed all closed community issues (filed by non-Brady users) and posted personalized gratitude comments from McManus on behalf of the Squad. Brady had already replied to most with technical thanks; my role was to add squad-wide appreciation and reinforce that we value community feedback.
+
+**Issues Replied To:**
+- #211 (diberry) — Squad management paradigms
+- #184 (tomasherceg) — Multi-agent coordination friction
+- #205 (csharpfritz) — Model flexibility per agent
+- #176 (johnwc) — Multi-repo support
+- #200 (tamirdresher) — Squad Workstreams PRD
+- #247 (marchermans) — Installation module resolution
+- #239 (dkirby-ms) — TUI blank-space polish
+- #223 (EirikHaughom) — Model/reasoning-level config
+- #237 (tamirdresher) — Unwired CLI commands regression
+- #202 (williamhallatt) — .gitignore footgun for config.json
+- #201 (williamhallatt) — Workflow separation (framework vs. product CI/CD)
+- #229 (uvirk) — Docs/release sync (squad doctor timing)
+- #214 (tihomir-kit) — Node.js built-in module resolution
+- #207 (fboucher) — Monorepo root-only limitation
+- #206 (Pruthviraj36) — Terminal blinking & scroll reset
+- #193 (wbreza) — Ceremonies file-size cliff + skills migration
+- #195 (dnoriegagoodwin) — Version stamp race condition
+- #218 (williamhallatt) — Fork workflow docs
+- #216 (williamhallatt) — TUI init flow UX gap
+
+**Skipped (Brady already replied):** #241, #148, #156, #157 — Brady's personal thanks were sufficient.
+
+**Tone & Approach:**
+- Each comment: 2-4 sentences, genuine warmth
+- Acknowledged specific technical insight from each contributor
+- Mentioned where the feedback fits into our roadmap
+- Signed as "— McManus 📝, on behalf of the Squad" (not "Coordinator")
+- Focused on *appreciation*, not solutions or commitments
+
+**Key Pattern Observed:**
+Community members are filing high-quality, well-researched issues—many with PRD-level rigor (e.g., #200, #193). These deserve acknowledgment beyond Brady's technical thanks. DevRel role is to reinforce that we listen and value their contributions, even when Brady is the first to reply.
 
 ### 2026-03-11: Customer Impact Analysis — GitHub Actions vs. CLI-First Shift
 

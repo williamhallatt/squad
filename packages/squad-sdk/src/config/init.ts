@@ -805,8 +805,8 @@ ${projectDescription ? `- **Description:** ${projectDescription}\n` : ''}- **Cre
   
   // -------------------------------------------------------------------------
   // Create .gitignore entries for runtime state (logs, inbox, sessions)
-  // These paths are written during normal squad operation but must never
-  // reach protected branches — the squad-main-guard workflow rejects them.
+  // These paths are written during normal squad operation but should not be
+  // committed to version control (they are runtime state).
   // -------------------------------------------------------------------------
   
   const gitignorePath = join(teamRoot, '.gitignore');

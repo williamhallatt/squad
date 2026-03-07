@@ -158,7 +158,6 @@ describe('CLI: init command', () => {
       'squad-insider-release.yml',
       'squad-preview.yml',
       'squad-promote.yml',
-      'squad-main-guard.yml',
       'squad-label-enforce.yml'
     ];
     

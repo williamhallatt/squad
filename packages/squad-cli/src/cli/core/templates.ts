@@ -209,12 +209,6 @@ export const TEMPLATE_MANIFEST: TemplateFile[] = [
     description: 'Squad label enforcement workflow',
   },
   {
-    source: 'workflows/squad-main-guard.yml',
-    destination: '../.github/workflows/squad-main-guard.yml',
-    overwriteOnUpgrade: true,
-    description: 'Squad main branch protection workflow',
-  },
-  {
     source: 'workflows/squad-preview.yml',
     destination: '../.github/workflows/squad-preview.yml',
     overwriteOnUpgrade: true,
