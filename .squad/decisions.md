@@ -5575,3 +5575,341 @@ Filed [#252](https://github.com/bradygaster/squad/issues/252) as the public RFC 
 **By:** Brady (via Copilot)
 **What:** Skill-based orchestration (Discussion #169) is a "HUGEly sexy idea" — elevate this to a high-priority feature direction. Convert to issue and treat as strategic.
 **Why:** User request — captured for team memory. This aligns with SDK-First roadmap and addresses the growing complexity of squad.agent.md.
+
+
+---
+
+# Decision: `squad init` Default is Markdown-Only, `--sdk` for Typed Config
+
+**Date:** 2026-03-07  
+**Decided by:** Fenster (implementing Issue #249 per Brady's request)  
+**Status:** Implemented in v0.8.21-preview.10
+
+## Context
+
+Squad init previously hardcoded `configFormat: 'typescript'` and always generated a `squad.config.ts` file using the OLD `SquadConfig` type format. Brady wanted:
+1. **Default behavior**: Markdown-only (old, boring, no config file)
+2. **Opt-in SDK**: New builder syntax with `defineSquad()` / `defineTeam()` / `defineAgent()`
+
+## Decision
+
+`squad init` now supports a `--sdk` flag:
+
+- **`squad init`** (no flag): `configFormat: 'markdown'` → NO config file generated, only `.squad/` directory structure
+- **`squad init --sdk`**: `configFormat: 'sdk'` → generates `squad.config.ts` with SDK builder syntax
+
+The OLD formats (`'typescript'`, `'json'`) remain available for backward compatibility but are not exposed via CLI flags.
+
+## Rationale
+
+1. **Markdown-first philosophy**: Default experience is "old boring markdown" — no types, no builders, just plain text team files
+2. **Progressive enhancement**: Opt-in SDK gives teams typed configuration when they want it
+3. **Clear migration path**: Teams can start with markdown, then add SDK config later when they're ready for typed configuration
+4. **Backward compatible**: Existing code using `configFormat: 'typescript'` or `'json'` still works
+
+## Implementation
+
+- **CLI flag parsing**: `cli-entry.ts` line ~199: `const sdk = args.includes('--sdk');`
+- **Options passthrough**: `init.ts` line ~114: `configFormat: options.sdk ? 'sdk' : 'markdown'`
+- **Generator function**: `packages/squad-sdk/src/config/init.ts` line ~337: `generateSDKBuilderConfig()`
+- **Config file skip**: When `configFormat === 'markdown'`, config file generation is skipped entirely
+
+## Files Modified
+
+- `packages/squad-cli/src/cli-entry.ts` — flag parsing + help text
+- `packages/squad-cli/src/cli/core/init.ts` — option passthrough
+- `packages/squad-sdk/src/config/init.ts` — new format support + generator
+
+## Examples
+
+### Markdown-only (default)
+```bash
+squad init
+# Creates: .squad/, .github/agents/, workflows
+# Does NOT create: squad.config.ts
+```
+
+### SDK builder format
+```bash
+squad init --sdk
+# Creates: .squad/, squad.config.ts (with defineSquad() syntax)
+```
+
+### Generated SDK config
+```typescript
+import { defineSquad, defineTeam, defineAgent } from '@bradygaster/squad-sdk';
+
+const scribe = defineAgent({
+  name: 'scribe',
+  role: 'scribe',
+  description: 'Scribe',
+  status: 'active',
+});
+
+export default defineSquad({
+  version: '1.0.0',
+  team: defineTeam({
+    name: 'project-name',
+    members: ['scribe'],
+  }),
+  agents: [scribe],
+});
+```
+
+## Team Impact
+
+- **Hockney**: No new tests required — init tests already cover file creation, SDK format is just content variation
+- **McManus**: Docs should clarify the two init modes (markdown vs SDK)
+- **Edie**: This is NOT the same as migrate.ts — this is for NEW squad creation, not converting existing squads
+- **Users**: Default experience unchanged — markdown-only is the default
+
+## Future Considerations
+
+- `squad build` command should work with SDK configs to generate markdown from TypeScript
+- Teams may want `squad migrate --to-sdk` to convert markdown → SDK config (that's Edie's migrate.ts, not this)
+
+
+---
+
+# Decision: `squad migrate` Command Implementation
+
+**Date:** 2026-03-08  
+**Author:** Edie  
+**Issue:** #250  
+**Status:** ✅ Implemented
+
+## Context
+
+Users with existing markdown-only squads (`.squad/` directory with team.md, routing.md, agent charters) need a way to convert to SDK-First mode. Conversely, SDK-First users should be able to revert to markdown-only if desired.
+
+## Decision
+
+Implemented `squad migrate` command with three migration paths:
+
+### 1. `squad migrate --to sdk` (markdown → SDK-First)
+
+**Input:** `.squad/` directory with markdown files  
+**Output:** `squad.config.ts` with builder syntax
+
+**Parsing strategy:**
+- `team.md`: Extract team name from h1, description from blockquote, members from `## Members` table (only active members), project context from `## Project Context` section
+- `routing.md`: Parse `## Work Type → Agent` table, extract pattern/agent/description from pipe-delimited rows
+- `casting/policy.json`: Parse JSON for allowlist universes and capacity
+- Agent charters: Parse role from h1 (e.g., `# Edie — TypeScript Engineer`)
+
+**Code generation:**
+- Uses builder functions: `defineSquad()`, `defineTeam()`, `defineAgent()`, `defineRouting()`, `defineCasting()`
+- Proper string escaping (single quotes, newlines)
+- Multiline string handling with `+` concatenation
+- Type-safe: all generated code matches builder type signatures
+
+### 2. `squad migrate --to markdown` (SDK-First → markdown)
+
+**Input:** `squad.config.ts`  
+**Output:** Updated `.squad/` directory, config moved to `.bak`
+
+**Process:**
+1. Run `squad build` to regenerate `.squad/` from config
+2. Move `squad.config.ts` → `squad.config.ts.bak`
+3. `.squad/` directory becomes source of truth
+
+### 3. `squad migrate --from ai-team` (legacy upgrade)
+
+**Input:** `.ai-team/` directory  
+**Output:** `.squad/` directory
+
+**Process:**
+- Subsumes existing `upgrade --migrate-directory` flag
+- Delegates to `migrateDirectory()` function (already implemented)
+- Suggests running `squad migrate --to sdk` afterward
+
+### 4. Interactive mode (no flags)
+
+Detects current mode and suggests appropriate migration:
+- **SDK-First** → suggests `--to markdown` to revert
+- **Markdown-only** → suggests `--to sdk` to convert
+- **Legacy** → suggests `--from ai-team` to upgrade
+- **None** → suggests `squad init`
+
+### Dry-run support
+
+`--dry-run` flag prints full generated config without writing files. Complete preview for validation.
+
+## Type Safety
+
+All parsing produces typed objects:
+- `ParsedTeam` → `TeamDefinition`
+- `ParsedAgent` → `AgentDefinition`
+- `ParsedRoutingRule` → `RoutingRule`
+- `ParsedCasting` → `CastingDefinition`
+
+Zero `any` types. All strings properly escaped.
+
+## Round-trip Fidelity
+
+Running `squad migrate --to sdk && squad build` should produce identical `.squad/` output. The migrate command preserves all metadata during conversion.
+
+## Implementation
+
+- File: `packages/squad-cli/src/cli/commands/migrate.ts`
+- Wired into: `packages/squad-cli/src/cli-entry.ts` (after upgrade block, line ~240)
+- Help text: Added at line ~107
+
+## Alternatives Considered
+
+1. **One-way migration only** — rejected because users should have flexibility to switch modes
+2. **Manual conversion scripts** — rejected because it requires deep understanding of both formats
+3. **Zod schema for parsing** — rejected to avoid adding dependency and maintain parse speed
+
+## Future Considerations
+
+- Add `--verify` flag to test round-trip conversion without modifying files
+- Support partial migrations (e.g., just routing or just agents)
+- Add ceremony parsing when `.squad/ceremonies.md` format stabilizes
+
+## Testing
+
+- ✅ Build passes with zero TypeScript errors
+- ✅ Interactive mode correctly detects SDK-First mode
+- ✅ Dry-run generates valid TypeScript with all 20 agents and 20 routing rules
+- ✅ Help text displays correctly
+- ✅ Parser handles multiline project context correctly
+- ✅ String escaping works for single quotes and special characters
+
+## Related
+
+- Issue #249: `squad init` builder mode (Fenster)
+- Issue #194: SDK-First builder types (Edie, Fenster, Hockney)
+
+
+---
+
+# Skill-Based Orchestration (#255)
+
+**Date:** 2026-03-07
+**Context:** Issue #255 — Decompose squad.agent.md into pluggable skills
+**Decision made by:** Verbal (Prompt Engineer)
+
+## Decision
+
+Squad coordinator capabilities are now **skill-based** — self-contained modules loaded on demand rather than always-inline in squad.agent.md.
+
+## What Changed
+
+### 1. SDK Builder Added
+
+Added `defineSkill()` builder function to the SDK (`packages/squad-sdk/src/builders/`):
+
+```typescript
+export interface SkillDefinition {
+  readonly name: string;
+  readonly description: string;
+  readonly domain: string;
+  readonly confidence?: 'low' | 'medium' | 'high';
+  readonly source?: 'manual' | 'observed' | 'earned' | 'extracted';
+  readonly content: string;
+  readonly tools?: readonly SkillTool[];
+}
+
+export function defineSkill(config: SkillDefinition): SkillDefinition { ... }
+```
+
+- **Why:** SDK-First mode needed a typed way to define skills in `squad.config.ts`
+- **Type naming:** Exported as `BuilderSkillDefinition` to distinguish from runtime `SkillDefinition` (skill-loader.ts)
+- **Validation:** Runtime type guards for all fields, follows existing builder pattern
+
+### 2. Four Skills Extracted
+
+Extracted from squad.agent.md:
+
+1. **init-mode** — Phase 1 (propose team) + Phase 2 (create team). ~100 lines. Full casting flow, `ask_user` tool, merge driver setup.
+2. **model-selection** — 4-layer hierarchy (User Override → Charter → Task-Aware → Default), role-to-model mappings, fallback chains. ~90 lines.
+3. **client-compatibility** — Platform detection (CLI vs VS Code vs fallback), spawn adaptations, SQL tool caveat. ~60 lines.
+4. **reviewer-protocol** — Rejection workflow, strict lockout semantics (original author cannot self-revise). ~30 lines.
+
+All skills marked:
+- `confidence: "high"` — extracted from authoritative governance file
+- `source: "extracted"` — marks decomposition from squad.agent.md
+
+### 3. squad.agent.md Compacted
+
+Replaced extracted sections with lazy-loading references:
+
+```markdown
+## Init Mode
+
+**Skill:** Read `.squad/skills/init-mode/SKILL.md` when entering Init Mode.
+
+**Core rules (always loaded):**
+- Phase 1: Propose team → use `ask_user` → STOP and wait
+- Phase 2 trigger: User confirms OR user gives task (implicit yes)
+- ...
+```
+
+**Result:** 840 lines → 711 lines (15% reduction, ~130 lines removed)
+
+### 4. Build Command Updated
+
+`squad build` now generates `.squad/skills/{name}/SKILL.md` when `config.skills` is defined in `squad.config.ts`:
+
+```typescript
+// In build.ts
+function generateSkillFile(skill: BuilderSkillDefinition): string {
+  // Generates frontmatter + content
+}
+
+// In buildFilePlan()
+if (config.skills && config.skills.length > 0) {
+  for (const skill of config.skills) {
+    files.push({
+      relPath: `.squad/skills/${skill.name}/SKILL.md`,
+      content: generateSkillFile(skill),
+    });
+  }
+}
+```
+
+## Why This Matters
+
+### For Coordinators
+- **Smaller context window:** squad.agent.md drops from 840 → 711 lines. Further decomposition can continue.
+- **On-demand loading:** Coordinator reads skill files only when relevant (e.g., init-mode only during Init Mode).
+- **Skill confidence lifecycle:** Framework supports low → medium → high confidence progression for future learned skills.
+
+### For SDK Users
+- **Typed skill definitions:** Define skills in `squad.config.ts` using `defineSkill()`, get validation and type safety.
+- **Programmatic skill authoring:** Skills can be composed, shared, and versioned like code.
+- **Build-time generation:** `squad build` generates SKILL.md from config — single source of truth.
+
+### For the Team
+- **Parallel with ceremony extraction:** Follows the same pattern as ceremony skill files (#193).
+- **Reduces merge conflicts:** Smaller squad.agent.md = fewer line-based conflicts when multiple PRs touch governance.
+- **Enables skill marketplace:** Future work can package skills as npm modules, share across teams.
+
+## Constraints
+
+1. **Existing behavior unchanged:** Skills are lazy-loaded. If coordinator previously got instructions inline, it now gets them from a skill file. Same instructions, different location.
+2. **squad.agent.md must still work:** Core rules remain inline. Coordinator knows WHEN to load each skill without needing the skill file first.
+3. **Type collision avoided:** BuilderSkillDefinition vs runtime SkillDefinition — import from `@bradygaster/squad-sdk/builders` subpath in CLI to avoid ambiguity.
+
+## Future Work
+
+- Extract 3+ more skills from squad.agent.md (target: <500 lines for core orchestration)
+- Add skill discovery/loading to runtime (currently manual references)
+- Skill marketplace: share skills via npm, discover in `squad marketplace`
+- Learned skills: agents can write skills from observations (already architected, not yet implemented)
+
+## References
+
+- Issue: #255
+- Files changed:
+  - `packages/squad-sdk/src/builders/types.ts`
+  - `packages/squad-sdk/src/builders/index.ts`
+  - `packages/squad-sdk/src/index.ts`
+  - `packages/squad-cli/src/cli/commands/build.ts`
+  - `.github/agents/squad.agent.md`
+  - `.squad/skills/init-mode/SKILL.md` (new)
+  - `.squad/skills/model-selection/SKILL.md` (new)
+  - `.squad/skills/client-compatibility/SKILL.md` (new)
+  - `.squad/skills/reviewer-protocol/SKILL.md` (new)
+

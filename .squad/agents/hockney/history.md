@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T17:35:45Z): Issues #249/#250/#251/#255 — 66 new tests (init-sdk.test.ts, migrate.test.ts, builders.test.ts). All passing. 3768 total tests, 0 failures. No regressions. Test suite validates all SDK-First features production-ready. — decided by Hockney
+
 
 📌 Team update (2026-03-07T16:38:00Z): Final v0.8.21 PR review complete. #189 (workstreams) and #191 (ADO adapter) held for v0.8.22. Both architecturally sound but have merge conflicts, zero CI runs, missing test coverage, and process-exit/security gaps. Recommendations: rebase to dev, fix CLI-level tests, address process.exit violations, add security test coverage (escapeWiql). Decision merged to decisions.md. — decided by Hockney
 
@@ -149,3 +151,4 @@
 - migrate: Tests are specs, implementation pending (all assertions commented out where migrate() doesn't exist yet)
 
 **Coverage:** 100% on new builder tests, 100% on init scenarios, comprehensive spec for migrate command. Ready for Fenster/Edie's implementation work.
+

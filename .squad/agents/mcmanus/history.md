@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T17:35:45Z): Issue #251 — SDK-First docs complete (decision tree, migration guide, defineSkill() reference). Follows Brady's lighthearted voice directive. Config mode documentation added. Ready for v0.8.21 release. — decided by McManus
+
 
 📌 Team update (2026-03-07T16:38:00Z): Triage labels applied to all 23 open issues on bradygaster/squad. Created 25 missing labels (squad:*, release:*, status:*, type:*, priority:*). Applied routing-aware labels per triage rules. 10 issues tagged release:v0.8.22, 11 backlog. Closed #194 (completed) and #231 (duplicate of #250). — decided by McManus
 
@@ -1371,6 +1373,7 @@ Multi-agent build of Rock-Paper-Scissors game with 10 AI strategies, Docker infr
 - Future-tense framing: commands documented as designed
 
 **Key messaging decision:** Markdown is the default, SDK is the upgrade path. This aligns with Brady's CLI-first strategy and reduces user surprise (no unexpected build step).
+
 
 
 

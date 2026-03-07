@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T17:35:45Z): Issue #249 — squad init --sdk flag implemented. Default init now markdown-only (no config file). Optional --sdk generates typed squad.config.ts with defineSquad() builders. Backward compatible. Coordinates with #250 migrate and #255 skills. — decided by Fenster
+
 📌 Team update (2026-03-07T16:25:00Z): Actions → CLI migration strategy finalized. 4-agent consensus: migrate 5 squad-specific workflows (12 min/mo) to CLI commands. Keep 9 CI/release workflows (215 min/mo, load-bearing). Zero-risk migration. v0.8.22 quick wins identified: squad labels sync + squad labels enforce. Phased rollout: v0.8.22 (deprecation + CLI) → v0.9.0 (remove workflows) → v0.9.x (opt-in automation). Brady's portability insight captured: CLI-first means Squad runs anywhere (containers, Codespaces). Customer communication strategy: "Zero surprise automation" as competitive differentiator. Decisions merged. — coordinated by Scribe
 
 📌 Team update (2026-03-07T05:56:56Z): Test suite assessment complete — 8 CLI commands untested (high-risk for next-wave bugs #237, #236). 30+ error-handling tests missing. Recommend 12-14 hrs QA work before feature wave. Adopted CLI wiring regression test pattern from PR #238 permanently. — decided by Hockney
@@ -884,3 +886,4 @@ pm test\: 3768 tests passed (2 pre-existing failures unrelated to changes)
 - **Help text location**: cli-entry.ts line ~97 for init command help, update with new flags in the format \Flags: --sdk (description)\
 - **Key files for init flow**: cli-entry.ts (routing) → cli/core/init.ts (options assembly) → squad-sdk/config/init.ts (file generation)
 - **Migration context**: This is NOT about migrate.ts (Edie's domain) — it's about NEW squad creation, not converting existing squads
+

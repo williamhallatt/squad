@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T17:35:45Z): Issue #255 — Skill-based orchestration deployed. Extracted 4 skills (init-mode, model-selection, client-compatibility, reviewer-protocol) from squad.agent.md (840→711 lines). Added defineSkill() builder to SDK. squad build generates .squad/skills/ from config. Lazy loading reduces context window. — decided by Verbal
+
 # Project Context
 
 - **Owner:** Brady
@@ -115,4 +117,5 @@ Created `.squad/skills/history-hygiene/SKILL.md` to codify lesson from Kobayashi
 - Source is 'extracted' (marks decomposition origin)
 
 **Builds passing:** squad-sdk and squad-cli compile cleanly with new types.
+
 

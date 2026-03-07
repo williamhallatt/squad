@@ -1,3 +1,5 @@
+📌 Team update (2026-03-07T17:35:45Z): Issue #250 — squad migrate command complete. Three bidirectional paths: markdown ↔ SDK-First, legacy .ai-team/ upgrade, interactive mode. Dry-run support. Type-safe parsing (zero any types). Round-trip fidelity verified. Complements #249 init. — decided by Edie
+
 📌 Team update (2026-03-07T05:56:56Z): Issue triage complete — #223 (model config reliability, P0 blocker) prioritized over #205 (charter-based model spec feature). Fix #223 first; #205 becomes feature built on top of reliable config layer. — decided by Keaton
 # Project Context
 
@@ -228,3 +230,4 @@ All four agents shipped Phase 2 in parallel: Fortier wired TTFT/duration/through
 - Wired into `cli-entry.ts` after upgrade block (line ~240), added to help text (line ~107)
 - All parsing produces typed objects matching builder types (`AgentDefinition`, `TeamDefinition`, `RoutingDefinition`, `CastingDefinition`)
 - Round-trip fidelity: `squad migrate --to sdk && squad build` should produce identical `.squad/` output
+
