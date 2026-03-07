@@ -1332,6 +1332,46 @@ Multi-agent build of Rock-Paper-Scissors game with 10 AI strategies, Docker infr
 
 📌 Team update (2026-03-07T15-55-00Z): v0.8.21 blog strategy finalized: two-post approach (SDK-First deep dive + comprehensive release wave). Blog post 025 published (336 lines), CHANGELOG updated with [0.8.21] section. Decision on blog scope and audience segmentation created. Ready for release communication. — decided by McManus
 
+### 2026-03-[Current]: SDK-First Documentation Update — Issue #251
+
+**Status:** Complete. All SDK-First documentation updated to cover `squad init --sdk` and `squad migrate` commands.
+
+**Work completed:**
+
+1. **Added "Which Mode Should I Use?" decision tree** to `docs/sdk-first-mode.md` (lines 22–31)
+   - Decision matrix: markdown-only vs. SDK-First vs. migration paths
+   - Frame: "Start with markdown" (default), SDK is opt-in upgrade
+   - Clear UX guidance for each scenario
+
+2. **Added "Starting a New SDK-First Project" section** (lines 100–133)
+   - `squad init --sdk` command documentation
+   - Example generated `squad.config.ts` with `defineSquad()` builder
+   - Contrast with default markdown-only flow
+
+3. **Added "Migrating an Existing Squad to SDK-First" section** (lines 137–176)
+   - `squad migrate --to sdk` / `--to markdown` / `--from ai-team` commands
+   - Migration mapping table: `.squad/` files → builder functions
+   - Preserved files: decisions.md, history.md, orchestration logs (append-only)
+   - Revert path documented
+
+4. **Added `defineSkill()` builder reference** (lines 460–492)
+   - Full field documentation (name, description, domain, confidence, source, content, tools)
+   - Usage example with git-workflow pattern
+   - Integration with `squad build`
+
+5. **Updated `docs/reference/config.md`** to use new builder syntax
+   - Replaced old `defineConfig()` pattern with `defineSquad()` builders
+   - Example shows `defineTeam()`, `defineAgent()`, `defineRouting()` usage
+   - Clarified markdown-first default vs. SDK opt-in
+
+**Tone ceiling maintained throughout:**
+- No hype or hand-waving
+- All claims substantiated by builder type signatures and CLI behavior
+- "Start with markdown" guidance is lead positioning (not buried)
+- Future-tense framing: commands documented as designed
+
+**Key messaging decision:** Markdown is the default, SDK is the upgrade path. This aligns with Brady's CLI-first strategy and reduces user surprise (no unexpected build step).
+
 
 
 

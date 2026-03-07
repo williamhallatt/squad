@@ -90,8 +90,8 @@ export interface InitOptions {
   projectDescription?: string;
   /** Agents to create */
   agents: InitAgentSpec[];
-  /** Config format (typescript or json) */
-  configFormat?: 'typescript' | 'json';
+  /** Config format (typescript or json for old format, sdk for new builder syntax, markdown for no config file) */
+  configFormat?: 'typescript' | 'json' | 'sdk' | 'markdown';
   /** User name for initial history entries */
   userName?: string;
   /** Skip files that already exist (default: true) */
@@ -332,6 +332,48 @@ function generateJsonConfig(options: InitOptions): string {
   return JSON.stringify(config, null, 2);
 }
 
+/**
+ * Generate SDK builder config file content (new defineSquad() format).
+ */
+function generateSDKBuilderConfig(options: InitOptions): string {
+  const { projectName, projectDescription, agents } = options;
+  
+  // Generate imports
+  let code = `import {\n  defineSquad,\n  defineTeam,\n  defineAgent,\n} from '@bradygaster/squad-sdk';\n\n`;
+  
+  code += `/**\n * Squad Configuration — ${projectName}\n`;
+  if (projectDescription) {
+    code += ` *\n * ${projectDescription}\n`;
+  }
+  code += ` */\n`;
+  
+  // Generate agent definitions
+  for (const agent of agents) {
+    const displayName = agent.displayName || titleCase(agent.name);
+    code += `const ${agent.name} = defineAgent({\n`;
+    code += `  name: '${agent.name}',\n`;
+    code += `  role: '${agent.role}',\n`;
+    code += `  description: '${displayName}',\n`;
+    code += `  status: 'active',\n`;
+    code += `});\n\n`;
+  }
+  
+  // Generate squad config
+  code += `export default defineSquad({\n`;
+  code += `  version: '1.0.0',\n\n`;
+  code += `  team: defineTeam({\n`;
+  code += `    name: '${projectName}',\n`;
+  if (projectDescription) {
+    code += `    description: '${projectDescription.replace(/'/g, "\\'")}',\n`;
+  }
+  code += `    members: [${agents.map(a => `'${a.name}'`).join(', ')}],\n`;
+  code += `  }),\n\n`;
+  code += `  agents: [${agents.map(a => a.name).join(', ')}],\n`;
+  code += `});\n`;
+  
+  return code;
+}
+
 // ============================================================================
 // Agent Template Generation
 // ============================================================================
@@ -569,13 +611,21 @@ export async function initSquad(options: InitOptions): Promise<InitResult> {
   // Create configuration file
   // -------------------------------------------------------------------------
   
-  const configFileName = configFormat === 'typescript' ? 'squad.config.ts' : 'squad.config.json';
-  const configPath = join(teamRoot, configFileName);
-  const configContent = configFormat === 'typescript'
-    ? generateTypeScriptConfig(options)
-    : generateJsonConfig(options);
-  
-  await writeIfNotExists(configPath, configContent);
+  // When configFormat is 'markdown', skip config file generation entirely
+  let configPath: string;
+  if (configFormat !== 'markdown') {
+    const configFileName = configFormat === 'sdk' ? 'squad.config.ts' : 
+                           configFormat === 'typescript' ? 'squad.config.ts' : 'squad.config.json';
+    configPath = join(teamRoot, configFileName);
+    const configContent = configFormat === 'sdk' ? generateSDKBuilderConfig(options) :
+                          configFormat === 'typescript' ? generateTypeScriptConfig(options) :
+                          generateJsonConfig(options);
+    
+    await writeIfNotExists(configPath, configContent);
+  } else {
+    // No config file for markdown-only mode
+    configPath = '';
+  }
   
   // -------------------------------------------------------------------------
   // Create agent directories and files

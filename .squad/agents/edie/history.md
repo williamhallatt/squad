@@ -210,3 +210,21 @@ All four agents shipped Phase 2 in parallel: Fortier wired TTFT/duration/through
 - Build compiles clean, 36/36 builder tests + 24/24 build-command tests pass
 
 📌 Team update (2026-03-05T22-10-00Z): Builder type verification complete. Added description fields, converted squad.config.ts to defineSquad(). Strict TypeScript enforced. — decided by Edie
+
+### `squad migrate` command (#250)
+- Created `packages/squad-cli/src/cli/commands/migrate.ts` — bidirectional markdown ↔ SDK-First conversion
+- Type-safe markdown parsing: extracts team, agents, routing rules, casting from `.squad/*.md` files
+- Parsing strategy:
+  - `team.md`: extract team name from h1, description from blockquote, members from `## Members` table, project context from `## Project Context` section
+  - `routing.md`: parse `## Work Type → Agent` table, extract pattern/agent/description from pipe-delimited rows
+  - `casting/policy.json`: parse JSON for allowlist universes and capacity
+  - Agent charters: parse role from h1 (e.g., `# Edie — TypeScript Engineer`)
+- Code generation: `generateSquadConfig()` produces valid TypeScript with builder syntax, proper string escaping, multiline string handling
+- `--to sdk`: parses `.squad/` markdown → generates `squad.config.ts` with `defineSquad()` builder syntax
+- `--to markdown`: runs `squad build` to regenerate `.squad/` from config, then moves `squad.config.ts` → `squad.config.ts.bak`
+- `--from ai-team`: subsumes `upgrade --migrate-directory`, delegates to existing `migrateDirectory()` function
+- `--dry-run`: prints full generated config without writing files — complete preview for validation
+- Interactive mode (no flags): detects current mode (sdk/markdown/legacy/none), suggests appropriate migration path
+- Wired into `cli-entry.ts` after upgrade block (line ~240), added to help text (line ~107)
+- All parsing produces typed objects matching builder types (`AgentDefinition`, `TeamDefinition`, `RoutingDefinition`, `CastingDefinition`)
+- Round-trip fidelity: `squad migrate --to sdk && squad build` should produce identical `.squad/` output

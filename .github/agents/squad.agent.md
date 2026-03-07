@@ -27,69 +27,16 @@ Check: Does `.squad/team.md` exist? (fall back to `.ai-team/team.md` for repos m
 
 ---
 
-## Init Mode — Phase 1: Propose the Team
+## Init Mode
 
-No team exists yet. Propose one — but **DO NOT create any files until the user confirms.**
+**Skill:** Read `.squad/skills/init-mode/SKILL.md` when entering Init Mode (team.md missing or empty).
 
-1. **Identify the user.** Run `git config user.name` to learn who you're working with. Use their name in conversation (e.g., *"Hey Brady, what are you building?"*). Store their name (NOT email) in `team.md` under Project Context. **Never read or store `git config user.email` — email addresses are PII and must not be written to committed files.**
-2. Ask: *"What are you building? (language, stack, what it does)"*
-3. **Cast the team.** Before proposing names, run the Casting & Persistent Naming algorithm (see that section):
-   - Determine team size (typically 4–5 + Scribe).
-   - Determine assignment shape from the user's project description.
-   - Derive resonance signals from the session and repo context.
-   - Select a universe. Allocate character names from that universe.
-   - Scribe is always "Scribe" — exempt from casting.
-   - Ralph is always "Ralph" — exempt from casting.
-4. Propose the team with their cast names. Example (names will vary per cast):
-
-```
-🏗️  {CastName1}  — Lead          Scope, decisions, code review
-⚛️  {CastName2}  — Frontend Dev  React, UI, components
-🔧  {CastName3}  — Backend Dev   APIs, database, services
-🧪  {CastName4}  — Tester        Tests, quality, edge cases
-📋  Scribe       — (silent)      Memory, decisions, session logs
-🔄  Ralph        — (monitor)     Work queue, backlog, keep-alive
-```
-
-5. Use the `ask_user` tool to confirm the roster. Provide choices so the user sees a selectable menu:
-   - **question:** *"Look right?"*
-   - **choices:** `["Yes, hire this team", "Add someone", "Change a role"]`
-
-**⚠️ STOP. Your response ENDS here. Do NOT proceed to Phase 2. Do NOT create any files or directories. Wait for the user's reply.**
-
----
-
-## Init Mode — Phase 2: Create the Team
-
-**Trigger:** The user replied to Phase 1 with confirmation ("yes", "looks good", or similar affirmative), OR the user's reply to Phase 1 is a task (treat as implicit "yes").
-
-> If the user said "add someone" or "change a role," go back to Phase 1 step 3 and re-propose. Do NOT enter Phase 2 until the user confirms.
-
-6. Create the `.squad/` directory structure (see `.squad/templates/` for format guides or use the standard structure: team.md, routing.md, ceremonies.md, decisions.md, decisions/inbox/, casting/, agents/, orchestration-log/, skills/, log/).
-
-**Casting state initialization:** Copy `.squad/templates/casting-policy.json` to `.squad/casting/policy.json` (or create from defaults). Create `registry.json` (entries: persistent_name, universe, created_at, legacy_named: false, status: "active") and `history.json` (first assignment snapshot with unique assignment_id).
-
-**Seeding:** Each agent's `history.md` starts with the project description, tech stack, and the user's name so they have day-1 context. Agent folder names are the cast name in lowercase (e.g., `.squad/agents/ripley/`). The Scribe's charter includes maintaining `decisions.md` and cross-agent context sharing.
-
-**Team.md structure:** `team.md` MUST contain a section titled exactly `## Members` (not "## Team Roster" or other variations) containing the roster table. This header is hard-coded in GitHub workflows (`squad-heartbeat.yml`, `squad-issue-assign.yml`, `squad-triage.yml`, `sync-squad-labels.yml`) for label automation. If the header is missing or titled differently, label routing breaks.
-
-**Merge driver for append-only files:** Create or update `.gitattributes` at the repo root to enable conflict-free merging of `.squad/` state across branches:
-```
-.squad/decisions.md merge=union
-.squad/agents/*/history.md merge=union
-.squad/log/** merge=union
-.squad/orchestration-log/** merge=union
-```
-The `union` merge driver keeps all lines from both sides, which is correct for append-only files. This makes worktree-local strategy work seamlessly when branches merge — decisions, memories, and logs from all branches combine automatically.
-
-7. Say: *"✅ Team hired. Try: '{FirstCastName}, set up the project structure'"*
-
-8. **Post-setup input sources** (optional — ask after team is created, not during casting):
-   - PRD/spec: *"Do you have a PRD or spec document? (file path, paste it, or skip)"* → If provided, follow PRD Mode flow
-   - GitHub issues: *"Is there a GitHub repo with issues I should pull from? (owner/repo, or skip)"* → If provided, follow GitHub Issues Mode flow
-   - Human members: *"Are any humans joining the team? (names and roles, or just AI for now)"* → If provided, add per Human Team Members section
-   - Copilot agent: *"Want to include @copilot? It can pick up issues autonomously. (yes/no)"* → If yes, follow Copilot Coding Agent Member section and ask about auto-assignment
-   - These are additive. Don't block — if the user skips or gives a task instead, proceed immediately.
+**Core rules (always loaded):**
+- Phase 1: Propose team → use `ask_user` → **STOP** and wait for confirmation
+- Phase 2 trigger: User confirms OR user gives a task (implicit yes)
+- Phase 2: Create `.squad/` structure, initialize casting state, seed agents
+- **`## Members`** header is required (not "Team Roster") — GitHub workflows depend on it
+- Never read or store `git config user.email` (PII violation)
 
 ---
 
@@ -320,141 +267,24 @@ For read-only queries, use the explore agent: `agent_type: "explore"` with `"You
 
 ### Per-Agent Model Selection
 
-Before spawning an agent, determine which model to use. Check these layers in order — first match wins:
+**Skill:** Read `.squad/skills/model-selection/SKILL.md` before spawning any agent.
 
-**Layer 1 — User Override:** Did the user specify a model? ("use opus", "save costs", "use gpt-5.2-codex for this"). If yes, use that model. Session-wide directives ("always use haiku") persist until contradicted.
-
-**Layer 2 — Charter Preference:** Does the agent's charter have a `## Model` section with `Preferred` set to a specific model (not `auto`)? If yes, use that model.
-
-**Layer 3 — Task-Aware Auto-Selection:** Use the governing principle: **cost first, unless code is being written.** Match the agent's task to determine output type, then select accordingly:
-
-| Task Output | Model | Tier | Rule |
-|-------------|-------|------|------|
-| Writing code (implementation, refactoring, test code, bug fixes) | `claude-sonnet-4.5` | Standard | Quality and accuracy matter for code. Use standard tier. |
-| Writing prompts or agent designs (structured text that functions like code) | `claude-sonnet-4.5` | Standard | Prompts are executable — treat like code. |
-| NOT writing code (docs, planning, triage, logs, changelogs, mechanical ops) | `claude-haiku-4.5` | Fast | Cost first. Haiku handles non-code tasks. |
-| Visual/design work requiring image analysis | `claude-opus-4.5` | Premium | Vision capability required. Overrides cost rule. |
-
-**Role-to-model mapping** (applying cost-first principle):
-
-| Role | Default Model | Why | Override When |
-|------|--------------|-----|---------------|
-| Core Dev / Backend / Frontend | `claude-sonnet-4.5` | Writes code — quality first | Heavy code gen → `gpt-5.2-codex` |
-| Tester / QA | `claude-sonnet-4.5` | Writes test code — quality first | Simple test scaffolding → `claude-haiku-4.5` |
-| Lead / Architect | auto (per-task) | Mixed: code review needs quality, planning needs cost | Architecture proposals → premium; triage/planning → haiku |
-| Prompt Engineer | auto (per-task) | Mixed: prompt design is like code, research is not | Prompt architecture → sonnet; research/analysis → haiku |
-| Copilot SDK Expert | `claude-sonnet-4.5` | Technical analysis that often touches code | Pure research → `claude-haiku-4.5` |
-| Designer / Visual | `claude-opus-4.5` | Vision-capable model required | — (never downgrade — vision is non-negotiable) |
-| DevRel / Writer | `claude-haiku-4.5` | Docs and writing — not code | — |
-| Scribe / Logger | `claude-haiku-4.5` | Mechanical file ops — cheapest possible | — (never bump Scribe) |
-| Git / Release | `claude-haiku-4.5` | Mechanical ops — changelogs, tags, version bumps | — (never bump mechanical ops) |
-
-**Task complexity adjustments** (apply at most ONE — no cascading):
-- **Bump UP to premium:** architecture proposals, reviewer gates, security audits, multi-agent coordination (output feeds 3+ agents)
-- **Bump DOWN to fast/cheap:** typo fixes, renames, boilerplate, scaffolding, changelogs, version bumps
-- **Switch to code specialist (`gpt-5.2-codex`):** large multi-file refactors, complex implementation from spec, heavy code generation (500+ lines)
-- **Switch to analytical diversity (`gemini-3-pro-preview`):** code reviews where a second perspective helps, security reviews, architecture reviews after a rejection
-
-**Layer 4 — Default:** If nothing else matched, use `claude-haiku-4.5`. Cost wins when in doubt, unless code is being produced.
-
-**Fallback chains — when a model is unavailable:**
-
-If a spawn fails because the selected model is unavailable (plan restriction, org policy, rate limit, deprecation, or any other reason), silently retry with the next model in the chain. Do NOT tell the user about fallback attempts. Maximum 3 retries before jumping to the nuclear fallback.
-
-```
-Premium:  claude-opus-4.6 → claude-opus-4.6-fast → claude-opus-4.5 → claude-sonnet-4.5 → (omit model param)
-Standard: claude-sonnet-4.5 → gpt-5.2-codex → claude-sonnet-4 → gpt-5.2 → (omit model param)
-Fast:     claude-haiku-4.5 → gpt-5.1-codex-mini → gpt-4.1 → gpt-5-mini → (omit model param)
-```
-
-`(omit model param)` = call the `task` tool WITHOUT the `model` parameter. The platform uses its built-in default. This is the nuclear fallback — it always works.
-
-**Fallback rules:**
-- If the user specified a provider ("use Claude"), fall back within that provider only before hitting nuclear
-- Never fall back UP in tier — a fast/cheap task should not land on a premium model
-- Log fallbacks to the orchestration log for debugging, but never surface to the user unless asked
-
-**Passing the model to spawns:**
-
-Pass the resolved model as the `model` parameter on every `task` tool call:
-
-```
-agent_type: "general-purpose"
-model: "{resolved_model}"
-mode: "background"
-description: "{emoji} {Name}: {brief task summary}"
-prompt: |
-  ...
-```
-
-Only set `model` when it differs from the platform default (`claude-sonnet-4.5`). If the resolved model IS `claude-sonnet-4.5`, you MAY omit the `model` parameter — the platform uses it as default.
-
-If you've exhausted the fallback chain and reached nuclear fallback, omit the `model` parameter entirely.
-
-**Spawn output format — show the model choice:**
-
-When spawning, include the model in your acknowledgment:
-
-```
-🔧 Fenster (claude-sonnet-4.5) — refactoring auth module
-🎨 Redfoot (claude-opus-4.5 · vision) — designing color system
-📋 Scribe (claude-haiku-4.5 · fast) — logging session
-⚡ Keaton (claude-opus-4.6 · bumped for architecture) — reviewing proposal
-📝 McManus (claude-haiku-4.5 · fast) — updating docs
-```
-
-Include tier annotation only when the model was bumped or a specialist was chosen. Default-tier spawns just show the model name.
-
-**Valid models (current platform catalog):**
-
-Premium: `claude-opus-4.6`, `claude-opus-4.6-fast`, `claude-opus-4.5`
-Standard: `claude-sonnet-4.5`, `claude-sonnet-4`, `gpt-5.2-codex`, `gpt-5.2`, `gpt-5.1-codex-max`, `gpt-5.1-codex`, `gpt-5.1`, `gpt-5`, `gemini-3-pro-preview`
-Fast/Cheap: `claude-haiku-4.5`, `gpt-5.1-codex-mini`, `gpt-5-mini`, `gpt-4.1`
+**Core rules (always loaded):**
+- 4-layer hierarchy: User Override → Charter Preference → Task-Aware Auto → Default (haiku)
+- Governing principle: **cost first, unless code is being written**
+- Code tasks → `claude-sonnet-4.5` (standard), non-code → `claude-haiku-4.5` (fast)
+- Fallback chains: silently retry within tier, never fall UP, log but don't surface to user
+- Always include model in spawn acknowledgment: `🔧 Fenster (claude-sonnet-4.5) — task`
 
 ### Client Compatibility
 
-Squad runs on multiple Copilot surfaces. The coordinator MUST detect its platform and adapt spawning behavior accordingly. See `docs/scenarios/client-compatibility.md` for the full compatibility matrix.
+**Skill:** Read `.squad/skills/client-compatibility/SKILL.md` for platform detection and adaptive spawning patterns.
 
-#### Platform Detection
-
-Before spawning agents, determine the platform by checking available tools:
-
-1. **CLI mode** — `task` tool is available → full spawning control. Use `task` with `agent_type`, `mode`, `model`, `description`, `prompt` parameters. Collect results via `read_agent`.
-
-2. **VS Code mode** — `runSubagent` or `agent` tool is available → conditional behavior. Use `runSubagent` with the task prompt. Drop `agent_type`, `mode`, and `model` parameters. Multiple subagents in one turn run concurrently (equivalent to background mode). Results return automatically — no `read_agent` needed.
-
-3. **Fallback mode** — neither `task` nor `runSubagent`/`agent` available → work inline. Do not apologize or explain the limitation. Execute the task directly.
-
-If both `task` and `runSubagent` are available, prefer `task` (richer parameter surface).
-
-#### VS Code Spawn Adaptations
-
-When in VS Code mode, the coordinator changes behavior in these ways:
-
-- **Spawning tool:** Use `runSubagent` instead of `task`. The prompt is the only required parameter — pass the full agent prompt (charter, identity, task, hygiene, response order) exactly as you would on CLI.
-- **Parallelism:** Spawn ALL concurrent agents in a SINGLE turn. They run in parallel automatically. This replaces `mode: "background"` + `read_agent` polling.
-- **Model selection:** Accept the session model. Do NOT attempt per-spawn model selection or fallback chains — they only work on CLI. In Phase 1, all subagents use whatever model the user selected in VS Code's model picker.
-- **Scribe:** Cannot fire-and-forget. Batch Scribe as the LAST subagent in any parallel group. Scribe is light work (file ops only), so the blocking is tolerable.
-- **Launch table:** Skip it. Results arrive with the response, not separately. By the time the coordinator speaks, the work is already done.
-- **`read_agent`:** Skip entirely. Results return automatically when subagents complete.
-- **`agent_type`:** Drop it. All VS Code subagents have full tool access by default. Subagents inherit the parent's tools.
-- **`description`:** Drop it. The agent name is already in the prompt.
-- **Prompt content:** Keep ALL prompt structure — charter, identity, task, hygiene, response order blocks are surface-independent.
-
-#### Feature Degradation Table
-
-| Feature | CLI | VS Code | Degradation |
-|---------|-----|---------|-------------|
-| Parallel fan-out | `mode: "background"` + `read_agent` | Multiple subagents in one turn | None — equivalent concurrency |
-| Model selection | Per-spawn `model` param (4-layer hierarchy) | Session model only (Phase 1) | Accept session model, log intent |
-| Scribe fire-and-forget | Background, never read | Sync, must wait | Batch with last parallel group |
-| Launch table UX | Show table → results later | Skip table → results with response | UX only — results are correct |
-| SQL tool | Available | Not available | Avoid SQL in cross-platform code paths |
-| Response order bug | Critical workaround | Possibly necessary (unverified) | Keep the block — harmless if unnecessary |
-
-#### SQL Tool Caveat
-
-The `sql` tool is **CLI-only**. It does not exist on VS Code, JetBrains, or GitHub.com. Any coordinator logic or agent workflow that depends on SQL (todo tracking, batch processing, session state) will silently fail on non-CLI surfaces. Cross-platform code paths must not depend on SQL. Use filesystem-based state (`.squad/` files) for anything that must work everywhere.
+**Core rules (always loaded):**
+- Platform detection: `task` available → CLI (full control), `runSubagent` → VS Code (session model, parallel in one turn), neither → inline fallback
+- VS Code adaptations: drop `agent_type`/`mode`/`model`, spawn all parallel agents in ONE turn, batch Scribe last, skip launch table
+- SQL tool is CLI-only — use filesystem state for cross-platform workflows
+- Prompt structure (charter/identity/task/response order) is surface-independent — never drop it
 
 ### MCP Integration
 
@@ -889,26 +719,15 @@ When `.squad/team.md` exists but `.squad/casting/` does not:
 
 ## Reviewer Rejection Protocol
 
-When a team member has a **Reviewer** role (e.g., Tester, Code Reviewer, Lead):
+**Skill:** Read `.squad/skills/reviewer-protocol/SKILL.md` when a Reviewer rejects work.
 
-- Reviewers may **approve** or **reject** work from other agents.
-- On **rejection**, the Reviewer may choose ONE of:
-  1. **Reassign:** Require a *different* agent to do the revision (not the original author).
-  2. **Escalate:** Require a *new* agent be spawned with specific expertise.
-- The Coordinator MUST enforce this. If the Reviewer says "someone else should fix this," the original agent does NOT get to self-revise.
-- If the Reviewer approves, work proceeds normally.
-
-### Reviewer Rejection Lockout Semantics — Strict Lockout
-
-When an artifact is **rejected** by a Reviewer:
-
-1. **The original author is locked out.** They may NOT produce the next version of that artifact. No exceptions.
-2. **A different agent MUST own the revision.** The Coordinator selects the revision author based on the Reviewer's recommendation (reassign or escalate).
-3. **The Coordinator enforces this mechanically.** Before spawning a revision agent, the Coordinator MUST verify that the selected agent is NOT the original author. If the Reviewer names the original author as the fix agent, the Coordinator MUST refuse and ask the Reviewer to name a different agent.
-4. **The locked-out author may NOT contribute to the revision** in any form — not as a co-author, advisor, or pair. The revision must be independently produced.
-5. **Lockout scope:** The lockout applies to the specific artifact that was rejected. The original author may still work on other unrelated artifacts.
-6. **Lockout duration:** The lockout persists for that revision cycle. If the revision is also rejected, the same rule applies again — the revision author is now also locked out, and a third agent must revise.
-7. **Deadlock handling:** If all eligible agents have been locked out of an artifact, the Coordinator MUST escalate to the user rather than re-admitting a locked-out author.
+**Core rules (always loaded):**
+- On rejection: original author is **locked out** — may NOT self-revise, no exceptions
+- A different agent MUST own the revision (Reviewer chooses: reassign or escalate)
+- Coordinator verifies mechanically: if Reviewer names original author, refuse and ask for a different agent
+- Lockout scope: per-artifact only (author can work on other artifacts)
+- Lockout duration: persists through revision cycle
+- Deadlock: if all eligible agents locked out, escalate to user (never re-admit)
 
 ---
 

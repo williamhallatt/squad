@@ -827,3 +827,60 @@ Fixed 4 bugs in a single branch:
 - Label sync/enforce are low-hanging fruit — no parsing complexity (roster already implemented), idempotent operations, thin wrappers around `gh` CLI.
 - The ralph-triage.js script in workflows is a CJS port of the SDK's triage.ts — both use the same logic. This enables parity between Actions (ralph-triage.js) and CLI (watch.ts importing sdk/ralph/triage). Any triage logic changes must sync to both.
 - Quick wins for CLI migration: look for workflows that don't need PATs or bot-specific APIs. Label operations, triage decisions, PR state checks — all available via `gh` CLI.
+
+---
+
+## Issue #249: \squad init --sdk\ Flag Implementation (2026-03-07)
+
+**Requested by:** Brady. Add \--sdk\ flag to \squad init\ to optionally generate SDK builder syntax config.
+
+**Implementation:**
+- Modified 3 files:
+  1. \packages/squad-cli/src/cli-entry.ts\: Added \--sdk\ flag parsing, updated help text
+  2. \packages/squad-cli/src/cli/core/init.ts\: Added \sdk?: boolean\ to \RunInitOptions\, passed through as \configFormat\
+  3. \packages/squad-sdk/src/config/init.ts\: Extended \configFormat\ type to \'typescript' | 'json' | 'sdk' | 'markdown'\, added \generateSDKBuilderConfig()\, updated config generation logic
+
+**Behavior:**
+- **Default** (\squad init\): \configFormat: 'markdown'\ — NO config file generated, only .squad/ directory structure
+- **With --sdk** (\squad init --sdk\): \configFormat: 'sdk'\ — generates squad.config.ts using \defineSquad()\, \defineTeam()\, \defineAgent()\ builders from \@bradygaster/squad-sdk\
+- **Backward compatible**: \'typescript'\ and \'json'\ formats still work exactly as before
+
+**SDK Builder Format Generated:**
+\\\	ypescript
+import { defineSquad, defineTeam, defineAgent } from '@bradygaster/squad-sdk';
+
+const scribe = defineAgent({
+  name: 'scribe',
+  role: 'scribe',
+  description: 'Scribe',
+  status: 'active',
+});
+
+export default defineSquad({
+  version: '1.0.0',
+  team: defineTeam({
+    name: 'project-name',
+    members: ['scribe'],
+  }),
+  agents: [scribe],
+});
+\\\
+
+**Testing:**
+- Manual tests passed: \squad init\ creates no config, \squad init --sdk\ creates SDK builder format
+- \
+pm run build\: clean (TypeScript 0 errors)
+- \
+pm test\: 3768 tests passed (2 pre-existing failures unrelated to changes)
+- Init tests specifically passed
+
+## Learnings
+
+- **Init flag pattern**: Parse flags with \rgs.includes('--flag')\ in cli-entry.ts, pass through to command handlers as boolean options
+- **Config generation branching**: When adding new config formats, use discriminated logic: check format type, skip file generation entirely for markdown-only, choose generator function for others
+- **SDK builder format**: Uses the NEW \defineSquad()\ / \defineTeam()\ / \defineAgent()\ syntax from the project's own squad.config.ts, NOT the old \SquadConfig\ type
+- **Backward compatibility preservation**: Old formats (\'typescript'\, \'json'\) must remain unchanged — extend type union, add new branches, never modify existing behavior
+- **configPath handling**: When no config file is generated (markdown mode), set \configPath = ''\ in result object to avoid confusion
+- **Help text location**: cli-entry.ts line ~97 for init command help, update with new flags in the format \Flags: --sdk (description)\
+- **Key files for init flow**: cli-entry.ts (routing) → cli/core/init.ts (options assembly) → squad-sdk/config/init.ts (file generation)
+- **Migration context**: This is NOT about migrate.ts (Edie's domain) — it's about NEW squad creation, not converting existing squads

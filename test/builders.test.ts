@@ -30,6 +30,9 @@ import type {
   SquadSDKConfig,
 } from '../packages/squad-sdk/src/builders/types.js';
 
+// ⚠️ Note: SkillDefinition type will be added to types.ts when #255 lands
+// Until then, using the stub type defined with the stub function below
+
 // ⚠️ When the real builder functions exist, replace this block with:
 //   import {
 //     defineTeam, defineAgent, defineRouting, defineCeremony,
@@ -152,6 +155,50 @@ function defineTelemetry(config: TelemetryDefinition): TelemetryDefinition {
     sampleRate: config.sampleRate ?? 1.0,
     ...config,
   };
+}
+
+interface SkillTool {
+  name: string;
+  description: string;
+  when?: string;
+}
+
+interface SkillDefinition {
+  name: string;
+  description: string;
+  domain: string;
+  content: string;
+  confidence?: 'high' | 'medium' | 'low';
+  source?: 'manual' | 'extracted' | 'inferred';
+  tools?: SkillTool[];
+}
+
+function defineSkill(config: SkillDefinition): SkillDefinition {
+  if (!config.name || typeof config.name !== 'string' || config.name.trim() === '') {
+    throw new BuilderValidationError('defineSkill', 'name', 'skill name is required and must be a non-empty string');
+  }
+  if (!config.description || typeof config.description !== 'string' || config.description.trim() === '') {
+    throw new BuilderValidationError('defineSkill', 'description', 'skill description is required and must be a non-empty string');
+  }
+  if (!config.domain || typeof config.domain !== 'string' || config.domain.trim() === '') {
+    throw new BuilderValidationError('defineSkill', 'domain', 'skill domain is required and must be a non-empty string');
+  }
+  if (!config.content || typeof config.content !== 'string' || config.content.trim() === '') {
+    throw new BuilderValidationError('defineSkill', 'content', 'skill content is required and must be a non-empty string');
+  }
+  if (config.confidence !== undefined) {
+    const validConfidences = ['high', 'medium', 'low'];
+    if (!validConfidences.includes(config.confidence)) {
+      throw new BuilderValidationError('defineSkill', 'confidence', `confidence must be one of: ${validConfidences.join(', ')}`);
+    }
+  }
+  if (config.source !== undefined) {
+    const validSources = ['manual', 'extracted', 'inferred'];
+    if (!validSources.includes(config.source)) {
+      throw new BuilderValidationError('defineSkill', 'source', `source must be one of: ${validSources.join(', ')}`);
+    }
+  }
+  return config;
 }
 
 // ============================================================================
@@ -552,5 +599,146 @@ describe('SquadSDKConfig composition', () => {
     expect(config.agents).toHaveLength(1);
     expect(config.routing).toBeUndefined();
     expect(config.ceremonies).toBeUndefined();
+  });
+});
+
+// ============================================================================
+// defineSkill() — Issue #255
+// ============================================================================
+
+describe('defineSkill()', () => {
+  it('accepts a valid skill with all fields', () => {
+    const skill = defineSkill({
+      name: 'git-workflow',
+      description: 'Squad branching model',
+      domain: 'workflow',
+      confidence: 'high',
+      source: 'manual',
+      content: '## Patterns\nBranch from dev...',
+      tools: [{ name: 'gh', description: 'GitHub CLI', when: 'Creating PRs' }],
+    });
+    expect(skill.name).toBe('git-workflow');
+    expect(skill.description).toBe('Squad branching model');
+    expect(skill.domain).toBe('workflow');
+    expect(skill.confidence).toBe('high');
+    expect(skill.source).toBe('manual');
+    expect(skill.content).toContain('Branch from dev');
+    expect(skill.tools).toHaveLength(1);
+    expect(skill.tools![0]!.name).toBe('gh');
+  });
+
+  it('accepts minimal skill (required fields only)', () => {
+    const skill = defineSkill({
+      name: 'testing',
+      description: 'Test conventions',
+      domain: 'quality',
+      content: 'Use Vitest for all tests.',
+    });
+    expect(skill.name).toBe('testing');
+    expect(skill.description).toBe('Test conventions');
+    expect(skill.domain).toBe('quality');
+    expect(skill.content).toBe('Use Vitest for all tests.');
+    expect(skill.confidence).toBeUndefined();
+    expect(skill.source).toBeUndefined();
+    expect(skill.tools).toBeUndefined();
+  });
+
+  it('rejects empty name', () => {
+    expect(() =>
+      defineSkill({
+        name: '',
+        description: 'Test',
+        domain: 'test',
+        content: 'test content',
+      }),
+    ).toThrow(/name.*required/i);
+  });
+
+  it('rejects missing description', () => {
+    expect(() =>
+      defineSkill({
+        name: 'test-skill',
+        description: '',
+        domain: 'test',
+        content: 'test content',
+      }),
+    ).toThrow(/description.*required/i);
+  });
+
+  it('rejects missing domain', () => {
+    expect(() =>
+      defineSkill({
+        name: 'test-skill',
+        description: 'Test skill',
+        domain: '',
+        content: 'test content',
+      }),
+    ).toThrow(/domain.*required/i);
+  });
+
+  it('rejects missing content', () => {
+    expect(() =>
+      defineSkill({
+        name: 'test-skill',
+        description: 'Test skill',
+        domain: 'test',
+        content: '',
+      }),
+    ).toThrow(/content.*required/i);
+  });
+
+  it('rejects invalid confidence value', () => {
+    expect(() =>
+      defineSkill({
+        name: 'test-skill',
+        description: 'Test skill',
+        domain: 'test',
+        content: 'test content',
+        confidence: 'super-high' as any,
+      }),
+    ).toThrow(/confidence.*one of.*high.*medium.*low/i);
+  });
+
+  it('rejects invalid source value', () => {
+    expect(() =>
+      defineSkill({
+        name: 'test-skill',
+        description: 'Test skill',
+        domain: 'test',
+        content: 'test content',
+        source: 'automatic' as any,
+      }),
+    ).toThrow(/source.*one of.*manual.*extracted.*inferred/i);
+  });
+
+  it('accepts optional tools array with valid entries', () => {
+    const skill = defineSkill({
+      name: 'cli-testing',
+      description: 'CLI test patterns',
+      domain: 'testing',
+      content: 'Test CLI commands with spawn',
+      tools: [
+        { name: 'vitest', description: 'Test runner' },
+        { name: 'spawn', description: 'Process spawning', when: 'Testing CLI' },
+      ],
+    });
+    expect(skill.tools).toHaveLength(2);
+    expect(skill.tools![0]!.name).toBe('vitest');
+    expect(skill.tools![1]!.when).toBe('Testing CLI');
+  });
+
+  it('preserves all optional fields when present', () => {
+    const skill = defineSkill({
+      name: 'typescript-patterns',
+      description: 'TypeScript best practices',
+      domain: 'engineering',
+      content: '# TypeScript\n\nUse strict mode...',
+      confidence: 'medium',
+      source: 'extracted',
+      tools: [{ name: 'tsc', description: 'TypeScript compiler' }],
+    });
+    expect(skill.confidence).toBe('medium');
+    expect(skill.source).toBe('extracted');
+    expect(skill.tools).toBeDefined();
   });
 });

@@ -13,39 +13,50 @@ That's it. Squad works out of the box. Everything below is optional.
 
 ## squad.config.ts
 
-For typed configuration with autocomplete, create this at your project root:
+For type-safe SDK-First configuration, create this at your project root:
 
 ```typescript
-import { defineConfig } from '@bradygaster/squad-sdk';
+import {
+  defineSquad,
+  defineTeam,
+  defineAgent,
+  defineRouting,
+} from '@bradygaster/squad-sdk';
 
-export default defineConfig({
-  team: {
+export default defineSquad({
+  version: '1.0.0',
+  team: defineTeam({
     name: 'my-squad',
-    root: '.squad',
     description: 'My project team',
-  },
-  agents: {
-    backend: { model: 'claude-sonnet-4', tools: ['route', 'memory', 'decision'] },
-    frontend: { model: 'gpt-4.1', tools: ['route', 'skill'] },
-  },
-  routing: {
-    workTypes: [
-      { pattern: /\bAPI|backend\b/i, targets: ['backend'], tier: 'standard' },
-      { pattern: /\bUI|CSS|React\b/i, targets: ['frontend'], tier: 'standard' },
+    members: ['@edie', '@mcmanus'],
+  }),
+  agents: [
+    defineAgent({
+      name: 'edie',
+      role: 'TypeScript Engineer',
+      model: 'claude-sonnet-4',
+      tools: ['grep', 'edit', 'view'],
+    }),
+    defineAgent({
+      name: 'mcmanus',
+      role: 'DevRel',
+      model: 'claude-haiku-4.5',
+      tools: ['grep', 'view'],
+    }),
+  ],
+  routing: defineRouting({
+    rules: [
+      { pattern: 'feature-*', agents: ['@edie'], tier: 'standard' },
+      { pattern: 'docs-*', agents: ['@mcmanus'], tier: 'lightweight' },
     ],
-  },
-  models: {
-    default: 'claude-sonnet-4',
-    fallbackChains: {
-      premium: ['claude-opus-4', 'gpt-4.1'],
-      standard: ['claude-sonnet-4', 'gpt-4.1'],
-      fast: ['claude-haiku-3.5', 'gpt-4.1-mini'],
-    },
-  },
+    defaultAgent: '@coordinator',
+  }),
 });
 ```
 
-`defineConfig()` merges your partial config with sensible defaults. You get full type inference and editor autocomplete.
+Each builder (`defineSquad()`, `defineTeam()`, `defineAgent()`, etc.) validates your config at runtime with type-safe error messages. Edit your `.ts` file, then run `squad build` to generate `.squad/` markdown.
+
+**Or start with markdown:** `squad init` creates a markdown-only squad with no config file needed.
 
 ---
 

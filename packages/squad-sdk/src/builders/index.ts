@@ -19,6 +19,7 @@ import type {
   HooksDefinition,
   CastingDefinition,
   TelemetryDefinition,
+  SkillDefinition,
   SquadSDKConfig,
 } from './types.js';
 
@@ -38,6 +39,8 @@ export type {
   HooksDefinition,
   CastingDefinition,
   TelemetryDefinition,
+  SkillDefinition,
+  SkillTool,
   SquadSDKConfig,
 } from './types.js';
 
@@ -371,6 +374,55 @@ export function defineTelemetry(config: TelemetryDefinition): TelemetryDefinitio
 }
 
 // ---------------------------------------------------------------------------
+// defineSkill
+// ---------------------------------------------------------------------------
+
+const CONFIDENCE_LEVELS = ['low', 'medium', 'high'] as const;
+const SKILL_SOURCES = ['manual', 'observed', 'earned', 'extracted'] as const;
+
+/**
+ * Define a reusable skill with patterns, context, and examples.
+ *
+ * ```ts
+ * const skill = defineSkill({
+ *   name: 'init-mode',
+ *   description: 'Team initialization flow (Phase 1 + Phase 2)',
+ *   domain: 'orchestration',
+ *   confidence: 'high',
+ *   source: 'extracted',
+ *   content: '## Context\n...\n## Patterns\n...',
+ *   tools: [{ name: 'ask_user', description: 'Confirm team roster', when: 'Phase 1 proposal' }],
+ * });
+ * ```
+ */
+export function defineSkill(config: SkillDefinition): SkillDefinition {
+  assertObject(config, 'defineSkill');
+  assertNonEmptyString(config.name, 'name', 'defineSkill');
+  assertNonEmptyString(config.description, 'description', 'defineSkill');
+  assertNonEmptyString(config.domain, 'domain', 'defineSkill');
+  assertNonEmptyString(config.content, 'content', 'defineSkill');
+
+  if (config.confidence !== undefined) {
+    assertStringUnion(config.confidence, CONFIDENCE_LEVELS, 'confidence', 'defineSkill');
+  }
+  if (config.source !== undefined) {
+    assertStringUnion(config.source, SKILL_SOURCES, 'source', 'defineSkill');
+  }
+  assertOptionalArray(config.tools, 'tools', 'defineSkill');
+
+  if (config.tools) {
+    for (const tool of config.tools) {
+      assertObject(tool, 'defineSkill');
+      assertNonEmptyString(tool.name, 'tools[].name', 'defineSkill');
+      assertNonEmptyString(tool.description, 'tools[].description', 'defineSkill');
+      assertNonEmptyString(tool.when, 'tools[].when', 'defineSkill');
+    }
+  }
+
+  return config;
+}
+
+// ---------------------------------------------------------------------------
 // defineDefaults
 // ---------------------------------------------------------------------------
 
@@ -428,6 +480,12 @@ export function defineSquad(config: SquadSDKConfig): SquadSDKConfig {
   if (config.hooks !== undefined) defineHooks(config.hooks);
   if (config.casting !== undefined) defineCasting(config.casting);
   if (config.telemetry !== undefined) defineTelemetry(config.telemetry);
+  if (config.skills !== undefined) {
+    assertArray(config.skills, 'skills', 'defineSquad');
+    for (const skill of config.skills) {
+      defineSkill(skill);
+    }
+  }
 
   return config;
 }

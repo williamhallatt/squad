@@ -77,6 +77,8 @@ export interface RunInitOptions {
   extractionDisabled?: boolean;
   /** If false, skip GitHub workflow installation (default: true) */
   includeWorkflows?: boolean;
+  /** If true, generate squad.config.ts with SDK builder syntax (default: false) */
+  sdk?: boolean;
 }
 
 /**
@@ -111,7 +113,7 @@ export async function runInit(dest: string, options: RunInitOptions = {}): Promi
         displayName: 'Scribe',
       }
     ],
-    configFormat: 'typescript',
+    configFormat: options.sdk ? 'sdk' : 'markdown',
     skipExisting: true,
     includeWorkflows: options.includeWorkflows !== false,
     includeTemplates: true,

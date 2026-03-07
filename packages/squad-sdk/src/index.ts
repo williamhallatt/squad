@@ -51,6 +51,7 @@ export {
   defineCasting,
   defineTelemetry,
   defineDefaults,
+  defineSkill,
   defineSquad,
   BuilderValidationError,
 } from './builders/index.js';
@@ -69,5 +70,7 @@ export type {
   HooksDefinition,
   CastingDefinition,
   TelemetryDefinition,
+  SkillDefinition as BuilderSkillDefinition,
+  SkillTool as BuilderSkillTool,
   SquadSDKConfig,
 } from './builders/index.js';

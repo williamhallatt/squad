@@ -19,6 +19,19 @@ This replaces manual `.squad/team.md`, `.squad/routing.md`, and agent charters w
 
 ---
 
+## Which Mode Should I Use?
+
+| Scenario | Command | What You Get |
+|----------|---------|-------------|
+| New project, want simplicity | `squad init` | Markdown-only `.squad/` directory |
+| New project, want type safety | `squad init --sdk` | `.squad/` + `squad.config.ts` with typed builders |
+| Existing squad, want to upgrade | `squad migrate --to sdk` | Keeps your team, generates typed config |
+| SDK squad, want to simplify | `squad migrate --to markdown` | Removes config, keeps markdown |
+
+**Start with markdown.** It's simpler, requires no build step, and works great for most projects. **Upgrade to SDK** when you want type-safe configuration, IDE autocomplete, and the ability to define skills and ceremonies in TypeScript.
+
+---
+
 ## Quick Start
 
 ### 1. Install the SDK
@@ -81,6 +94,86 @@ This generates:
 - `.squad/routing.md` — routing rules
 - `.squad/agents/{name}/charter.md` — agent charters
 - `.squad/ceremonies.md` — (if ceremonies defined)
+
+---
+
+## Starting a New SDK-First Project
+
+```bash
+squad init --sdk
+```
+
+This generates:
+- `.squad/` directory with all standard markdown files (team.md, routing.md, agent charters, etc.)
+- `squad.config.ts` at your project root using the `defineSquad()` builder syntax
+
+Your `squad.config.ts` is the source of truth. Edit it, then run `squad build` to regenerate `.squad/`.
+
+### What Gets Generated
+
+```typescript
+import {
+  defineSquad,
+  defineTeam,
+  defineAgent,
+} from '@bradygaster/squad-sdk';
+
+export default defineSquad({
+  version: '1.0.0',
+  team: defineTeam({
+    name: 'my-project',
+    members: ['scribe'],
+  }),
+  agents: [
+    defineAgent({ name: 'scribe', role: 'scribe', description: 'Scribe', status: 'active' }),
+  ],
+});
+```
+
+Without `--sdk`, `squad init` creates a markdown-only squad — no config file, no build step needed.
+
+---
+
+## Migrating an Existing Squad to SDK-First
+
+```bash
+squad migrate --to sdk        # generate squad.config.ts from existing .squad/
+squad migrate --to sdk --dry-run  # preview without writing
+```
+
+The migrate command reads your existing `.squad/` files (team.md, routing.md, agent charters) and generates a `squad.config.ts` that reproduces your current configuration using typed builders.
+
+### What Gets Migrated
+
+| Source | Generated |
+|--------|-----------|
+| `.squad/team.md` roster | `defineTeam({ members: [...] })` |
+| `.squad/agents/*/charter.md` | `defineAgent({ name, role, ... })` per agent |
+| `.squad/routing.md` rules | `defineRouting({ rules: [...] })` |
+| `.squad/ceremonies.md` | `defineCeremony()` entries |
+| `.squad/casting/policy.json` | `defineCasting()` block |
+
+### What's Preserved (Not Migrated)
+
+- `decisions.md` — append-only ledger, stays as-is
+- `agents/*/history.md` — personal knowledge, stays as-is
+- `orchestration-log/`, `log/` — append-only archives
+
+### Reverting to Markdown
+
+```bash
+squad migrate --to markdown
+```
+
+This runs `squad build` to ensure `.squad/` is current, then removes `squad.config.ts`.
+
+### Legacy Migration
+
+```bash
+squad migrate --from ai-team   # rename .ai-team/ → .squad/
+```
+
+This replaces the old `squad upgrade --migrate-directory` command.
 
 ---
 
@@ -361,6 +454,42 @@ interface TelemetryDefinition {
 | `serviceName` | string | ❌ | OTel service name |
 | `sampleRate` | number | ❌ | Trace sample rate (0.0 – 1.0) |
 | `aspireDefaults` | boolean | ❌ | Apply Aspire-compatible defaults for dashboard integration |
+
+---
+
+### `defineSkill()`
+
+Define a reusable skill that agents can load on demand.
+
+```typescript
+import { defineSkill } from '@bradygaster/squad-sdk';
+
+const gitWorkflow = defineSkill({
+  name: 'git-workflow',
+  description: 'Squad branching model and PR conventions',
+  domain: 'workflow',
+  confidence: 'high',
+  source: 'manual',
+  content: `
+    ## Patterns
+    - Branch from dev: squad/{issue-number}-{slug}
+    - PRs target dev, not main
+    - Three-branch model: dev → insiders → main
+  `,
+});
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | ✅ | Unique skill name (kebab-case) |
+| `description` | `string` | ✅ | What this skill teaches |
+| `domain` | `string` | ✅ | Category (e.g., 'orchestration', 'testing') |
+| `confidence` | `'low' \| 'medium' \| 'high'` | — | Skill maturity level |
+| `source` | `'manual' \| 'observed' \| 'earned' \| 'extracted'` | — | How the skill was learned |
+| `content` | `string` | ✅ | The skill body (patterns, examples) |
+| `tools` | `SkillTool[]` | — | MCP tools relevant to this skill |
+
+Skills defined in `squad.config.ts` are generated to `.squad/skills/{name}/SKILL.md` when you run `squad build`.
 
 ---
 

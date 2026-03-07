@@ -30,6 +30,7 @@ import type {
   ModelPreference,
   BuilderModelId,
 } from '@bradygaster/squad-sdk';
+import type { SkillDefinition as BuilderSkillDefinition } from '@bradygaster/squad-sdk/builders';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -298,6 +299,39 @@ function generateCeremonySkillFile(c: CeremonyDefinition): string {
   return lines.join('\n');
 }
 
+/** Generate a skill SKILL.md file from BuilderSkillDefinition. */
+function generateSkillFile(skill: BuilderSkillDefinition): string {
+  const lines: string[] = [];
+
+  // Frontmatter
+  lines.push('---');
+  lines.push(`name: "${skill.name}"`);
+  lines.push(`description: "${skill.description}"`);
+  lines.push(`domain: "${skill.domain}"`);
+  if (skill.confidence) {
+    lines.push(`confidence: "${skill.confidence}"`);
+  }
+  if (skill.source) {
+    lines.push(`source: "${skill.source}"`);
+  }
+  if (skill.tools && skill.tools.length > 0) {
+    lines.push('tools:');
+    for (const tool of skill.tools) {
+      lines.push(`  - name: "${tool.name}"`);
+      lines.push(`    description: "${tool.description}"`);
+      lines.push(`    when: "${tool.when}"`);
+    }
+  }
+  lines.push('---');
+  lines.push('');
+
+  // Content
+  lines.push(skill.content);
+  lines.push('');
+
+  return lines.join('\n');
+}
+
 // ---------------------------------------------------------------------------
 // File plan + writing
 // ---------------------------------------------------------------------------
@@ -357,6 +391,16 @@ function buildFilePlan(config: SquadSDKConfig): GeneratedFile[] {
       files.push({
         relPath: '.squad/ceremonies.md',
         content: monolithic,
+      });
+    }
+  }
+
+  // skills — generate SKILL.md for each skill definition
+  if (config.skills && config.skills.length > 0) {
+    for (const skill of config.skills) {
+      files.push({
+        relPath: `.squad/skills/${skill.name}/SKILL.md`,
+        content: generateSkillFile(skill),
       });
     }
   }

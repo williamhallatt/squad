@@ -88,3 +88,31 @@ Created `.squad/skills/history-hygiene/SKILL.md` to codify lesson from Kobayashi
 - Core principle baked into prompt: SDK mode extends markdown mode, `.squad/` remains the runtime format
 - Kept to ~10 lines — prompt section, not documentation
 
+
+### #255: Skill-Based Orchestration — Decompose squad.agent.md
+
+**Problem:** squad.agent.md at 840 lines. Every feature adds inline instructions even when irrelevant to current task. Needed pluggable skills that load on demand.
+
+**Solution — 4 parts:**
+
+1. **Added `defineSkill()` builder to SDK** — New SkillDefinition type in `packages/squad-sdk/src/builders/types.ts` with fields: name, description, domain, confidence, source, content, tools. Builder function in `index.ts` with validation. Added `skills?: readonly SkillDefinition[]` to SquadSDKConfig. Exported as BuilderSkillDefinition to distinguish from runtime SkillDefinition (skill-loader.ts).
+
+2. **Extracted 4 coordinator capabilities to skill files:**
+   - `.squad/skills/init-mode/SKILL.md` — Phase 1 + Phase 2 team initialization (~100 lines from squad.agent.md)
+   - `.squad/skills/model-selection/SKILL.md` — 4-layer hierarchy, role-to-model mapping, fallback chains (~90 lines)
+   - `.squad/skills/client-compatibility/SKILL.md` — Platform detection, VS Code adaptations, SQL caveat (~60 lines)
+   - `.squad/skills/reviewer-protocol/SKILL.md` — Rejection workflow, strict lockout semantics (~30 lines)
+   - All marked `confidence: "high"`, `source: "extracted"`
+
+3. **Updated squad.agent.md with lazy-loading references** — Replaced extracted sections with compact "Skill: Read .squad/skills/{name}/SKILL.md" + core rules summary. Result: 840 lines → 711 lines (15% reduction, ~130 lines removed).
+
+4. **Updated `squad build` to generate SKILL.md from defineSkill()** — Added `generateSkillFile()` to `build.ts`, generates frontmatter + content. Added skills loop to `buildFilePlan()`. Import uses `@bradygaster/squad-sdk/builders` subpath to avoid type collision with runtime SkillDefinition.
+
+**Key constraints respected:**
+- Existing behavior unchanged — skills lazy-loaded (read on demand), coordinator gets same instructions
+- squad.agent.md still works — enough context inline to know WHEN to load each skill
+- Confidence is 'high' (extracted from authoritative source)
+- Source is 'extracted' (marks decomposition origin)
+
+**Builds passing:** squad-sdk and squad-cli compile cleanly with new types.
+

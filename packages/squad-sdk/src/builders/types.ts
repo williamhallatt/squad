@@ -226,6 +226,38 @@ export interface TelemetryDefinition {
 }
 
 // ---------------------------------------------------------------------------
+// SkillDefinition
+// ---------------------------------------------------------------------------
+
+/** MCP tool relevant to a skill. */
+export interface SkillTool {
+  readonly name: string;
+  readonly description: string;
+  readonly when: string;
+}
+
+/**
+ * Skill definition for SDK-First mode.
+ * Skills are reusable capabilities that agents or the coordinator can load on demand.
+ */
+export interface SkillDefinition {
+  /** Unique skill name (kebab-case) */
+  readonly name: string;
+  /** Human-readable description */
+  readonly description: string;
+  /** Domain category (e.g., 'orchestration', 'testing', 'api-design') */
+  readonly domain: string;
+  /** Confidence level in this skill */
+  readonly confidence?: 'low' | 'medium' | 'high';
+  /** How the skill was learned */
+  readonly source?: 'manual' | 'observed' | 'earned' | 'extracted';
+  /** The skill content — patterns, context, examples, anti-patterns */
+  readonly content: string;
+  /** Optional MCP tools relevant to this skill */
+  readonly tools?: readonly SkillTool[];
+}
+
+// ---------------------------------------------------------------------------
 // SquadSDKConfig — top-level config that composes all builders
 // ---------------------------------------------------------------------------
 
@@ -256,4 +288,7 @@ export interface SquadSDKConfig {
 
   /** Telemetry / OTel configuration. */
   readonly telemetry?: TelemetryDefinition;
+
+  /** Skill definitions. */
+  readonly skills?: readonly SkillDefinition[];
 }

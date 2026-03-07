@@ -93,8 +93,9 @@ async function main(): Promise<void> {
     console.log(`Commands:`);
     console.log(`  ${BOLD}(default)${RESET}  Launch interactive shell (no args)`);
     console.log(`             Flags: --global (init in personal squad directory)`);
-    console.log(`  ${BOLD}init${RESET}       Initialize Squad (skip files that already exist)`);
-    console.log(`             Flags: --global (init in personal squad directory)`);
+    console.log(`  ${BOLD}init${RESET}       Initialize Squad (markdown-only, default)`);
+    console.log(`             Flags: --sdk (generate squad.config.ts with SDK builder syntax)`);
+    console.log(`                    --global (init in personal squad directory)`);
     console.log(`                    --no-workflows (skip GitHub workflow installation)`);
     console.log(`             Usage: init --mode remote <team-repo-path>`);
     console.log(`             Creates .squad/config.json pointing to an external team root`);
@@ -103,6 +104,8 @@ async function main(): Promise<void> {
     console.log(`             Never touches: .squad/ or .ai-team/ (your team state)`);
     console.log(`             Flags: --global (upgrade personal squad)`);
     console.log(`                    --migrate-directory (rename .ai-team/ → .squad/)`);
+    console.log(`  ${BOLD}migrate${RESET}    Convert between markdown and SDK-First squad formats`);
+    console.log(`             Flags: --to sdk|markdown, --from ai-team, --dry-run`);
     console.log(`  ${BOLD}status${RESET}     Show which squad is active and why`);
     console.log(`  ${BOLD}triage${RESET}     Scan for work and categorize issues`);
     console.log(`             Usage: triage [--interval <minutes>]`);
@@ -197,7 +200,8 @@ async function main(): Promise<void> {
 
     const dest = hasGlobal ? resolveGlobalSquadPath() : process.cwd();
     const noWorkflows = args.includes('--no-workflows');
-    runInit(dest, { includeWorkflows: !noWorkflows }).catch(err => {
+    const sdk = args.includes('--sdk');
+    runInit(dest, { includeWorkflows: !noWorkflows, sdk }).catch(err => {
       fatal(err.message);
     });
     return;
@@ -223,6 +227,17 @@ async function main(): Promise<void> {
       self: selfUpgrade
     });
     
+    return;
+  }
+
+  if (cmd === 'migrate') {
+    const { runMigrate } = await import('./cli/commands/migrate.js');
+    const toIdx = args.indexOf('--to');
+    const to = (toIdx !== -1 && args[toIdx + 1]) ? args[toIdx + 1] as 'sdk' | 'markdown' : undefined;
+    const fromIdx = args.indexOf('--from');
+    const from = (fromIdx !== -1 && args[fromIdx + 1]) ? args[fromIdx + 1] : undefined;
+    const dryRun = args.includes('--dry-run');
+    await runMigrate(process.cwd(), { to, from: from as 'ai-team' | undefined, dryRun });
     return;
   }
 
