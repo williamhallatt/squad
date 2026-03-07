@@ -32,6 +32,51 @@
 
 ## Learnings
 
+### Release v0.8.21 — Dev → Main Merge & NPM Publish Trigger (IN PROGRESS — BLOCKED)
+
+**RELEASE GATE MERGE EXECUTED.** Dev branch merged to main successfully. NPM publish workflow blocked on 2FA requirement.
+
+#### Execution Summary
+- **✅ Merge strategy:** Local merge (git checkout main && git merge origin/dev) with conflict resolution
+- **✅ Conflicts resolved:** 5 files (cli-entry.ts, package.json files, test files) — used `git checkout --theirs` strategy
+- **✅ Push success:** Main branch updated (commit 59b0c7a)
+- **✅ Lock file sync:** Fixed package-lock.json sync issue (commit 543bc1a)
+- **✅ Build script fix:** Added CI env check to skip version bump during publish (commit 344bb2b)
+- **❌ NPM Publish blocked:** Workflow requires 2FA/OTP; NPM_TOKEN needs to be automation token
+
+#### NPM Publishing Blocker — Action Required
+**CRITICAL:** NPM_TOKEN secret is a user token with 2FA enabled. Automated publishing requires an **automation token** or **granular access token** with 2FA bypass.
+
+**Resolution path:**
+1. Go to https://www.npmjs.com/settings/USER/tokens
+2. Create a new **Automation Token** (classic) or **Granular Access Token** with publish permissions
+3. Update the `NPM_TOKEN` secret in repo settings with the new token
+4. Re-trigger the workflow: `gh workflow run publish.yml --ref main -f version=0.8.21`
+
+**Workflow runs attempted:** 3 (all failed at npm publish step)
+- Run 1: package-lock.json out of sync
+- Run 2: build script incremented version (0.8.21 → 0.8.21.1)
+- Run 3: npm 2FA/OTP required
+
+#### Post-Publish Prep Complete
+✅ Version bumped on dev to 0.8.22-preview.1 (commit 9473fa1)
+
+#### Key Learnings
+1. **Conflict resolution for release merges:** Use `git checkout --theirs` on all conflicts when merging dev → main for release
+2. **Workflow dispatch inputs:** Always check workflow file for required inputs; publish.yml needs explicit version string
+3. **Protected branch constraints:** Rebase strategies fail on force-push-protected branches; use merge + conflict resolution
+4. **Post-release discipline:** Immediately bump dev to next preview version after triggering publish (prevents version collisions)
+5. **CI build scripts:** Disable local dev tooling (version bumps, etc.) in CI with env checks (`process.env.CI === 'true'`)
+6. **NPM automation tokens:** User tokens with 2FA enabled CANNOT be used for CI/CD; must use automation tokens or granular access tokens
+
+#### Release Sequence Validation
+✅ Pre-release version: 0.8.21-preview.X
+✅ Publish version: 0.8.21 (tagged, released on GitHub)
+⏸️ NPM publish: BLOCKED (awaiting automation token configuration)
+✅ Post-publish dev bump: 0.8.22-preview.1
+
+---
+
 ### 2026-03-05: v0.8.21 Release PR Merge — 3 of 4 Successfully Merged (COMPLETE)
 **Status:** ✅ COMPLETE. 3 PRs merged into dev; 1 blocked (branch deleted).
 
