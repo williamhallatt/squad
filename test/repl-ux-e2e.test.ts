@@ -116,15 +116,23 @@ describe('REPL UX E2E — What Users Actually See', { timeout: 30_000 }, () => {
   // Test 1: First Run — No Team Exists
   // ────────────────────────────────────────────────────────────────────────
   describe('First Run — No Team Exists', () => {
+    // Isolate from any real global squad on the host machine so the CLI
+    // takes the "no squad anywhere" code-path (welcome banner, exit 0).
+    const noGlobalSquadEnv = () => ({
+      APPDATA: tempDir,
+      LOCALAPPDATA: tempDir,
+      XDG_CONFIG_HOME: tempDir,
+    });
+
     it('shows welcome message when no .squad/ exists', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
       const output = stripAnsi(result.combined);
 
       expect(output).toContain('Welcome to Squad');
     });
 
     it('banner appears exactly once (not duplicated)', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
       const output = stripAnsi(result.combined);
 
       const bannerMatches = output.match(/Welcome to Squad/g);
@@ -132,7 +140,7 @@ describe('REPL UX E2E — What Users Actually See', { timeout: 30_000 }, () => {
     });
 
     it('no "coordinator:" label in user-visible output', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
       const output = stripAnsi(result.combined);
 
       // "coordinator:" should never appear outside debug mode
@@ -140,7 +148,7 @@ describe('REPL UX E2E — What Users Actually See', { timeout: 30_000 }, () => {
     });
 
     it('init prompt/suggestion is visible and prominent', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
       const output = stripAnsi(result.combined);
 
       // Users must see how to get started
@@ -149,21 +157,21 @@ describe('REPL UX E2E — What Users Actually See', { timeout: 30_000 }, () => {
     });
 
     it('no SQLite ExperimentalWarning in output', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
       const combined = stripAnsi(result.combined);
 
       expect(combined).not.toContain('ExperimentalWarning');
     });
 
     it('no "Resumed session" message on first run', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
       const output = stripAnsi(result.combined);
 
       expect(output).not.toMatch(/Resumed session/i);
     });
 
     it('exits cleanly with code 0', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      const result = await runCli([], { cwd: tempDir, env: noGlobalSquadEnv() });
 
       expect(result.exitCode).toBe(0);
     });
@@ -226,7 +234,9 @@ describe('REPL UX E2E — What Users Actually See', { timeout: 30_000 }, () => {
     });
 
     it('first-run welcome appears exactly once', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      // Isolate from host global squad so CLI takes the first-run path
+      const noGlobalEnv = { APPDATA: tempDir, LOCALAPPDATA: tempDir, XDG_CONFIG_HOME: tempDir };
+      const result = await runCli([], { cwd: tempDir, env: noGlobalEnv });
       const output = stripAnsi(result.combined);
 
       const welcomeMatches = output.match(/Welcome to Squad/g);
@@ -234,7 +244,9 @@ describe('REPL UX E2E — What Users Actually See', { timeout: 30_000 }, () => {
     });
 
     it('no duplicate "Your AI agent team" tagline', async () => {
-      const result = await runCli([], { cwd: tempDir });
+      // Isolate from host global squad so CLI takes the first-run path
+      const noGlobalEnv = { APPDATA: tempDir, LOCALAPPDATA: tempDir, XDG_CONFIG_HOME: tempDir };
+      const result = await runCli([], { cwd: tempDir, env: noGlobalEnv });
       const output = stripAnsi(result.combined);
 
       const taglineMatches = output.match(/Your AI agent team/g);

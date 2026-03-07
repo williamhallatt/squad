@@ -35,6 +35,9 @@ export class TerminalHarness extends EventEmitter {
       LINES: String(rows),
       TERM: 'dumb',
       NO_COLOR: '1',
+      // Suppress Node.js ExperimentalWarning (e.g. SQLite) — the CLI sets
+      // NODE_NO_WARNINGS at runtime, but ESM import hoisting defeats it.
+      NODE_NO_WARNINGS: '1',
       ...options?.env,
     };
 

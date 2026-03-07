@@ -2854,26 +2854,37 @@ This sample reinforces core Squad decisions:
 This sample is intentional: I'm designing it to compound future work. Once we have Azure Functions working, Lambda, GCP Cloud Functions, Vercel, and other serverless patterns become copy-paste variations. One good example beats a dozen half-baked ones.
 
 
-# Decision: Azure Function Squad Sample Pattern
 
-**Author:** Fenster  
-**Date:** 2026-03-06  
+
+### 2026-03-06T15:37:00Z: User directive — Quality is absolutely job #1
+**By:** Brady (via Copilot)
+**What:** Quality is the top priority from here on out. "Two mistakes and you're locked out" policy is now in effect — agents who produce broken work twice on the same artifact are locked out and a different agent must revise.
+**Why:** User request — recent work introduced regressions (remote control, aspire vanishing, nap vanishing). Trust is earned through correctness.
+
+
+### 2026-03-06T15:37:00Z: User directive — Double/triple check one another
+**By:** Brady (via Copilot)
+**What:** Agents must cross-verify each other's work before shipping. Review gates are non-optional. Charters should be updated when agents realize their processes are producing errors.
+**Why:** User request — multiple features vanished or broke recently. Prevention over correction.
+
+
+### 2026-03-07: Phase 2 Sequential PR Merges (PR #232 + #212)
+**By:** Kobayashi (Git & Release)
 **Status:** Implemented
+**What:** Merge PR #232 (Scribe fix) and PR #212 (version stamp preservation) sequentially into dev. PR #232 merged cleanly (86598f4e). PR #212 required rebase after #232 merged (base changed), resolved conflicts, and merged cleanly (0fedcce).
+**Why:** Sequential merges may require rebase if base changes materially. Rebase that drops commits means the fix was already upstream - safe to proceed. Force-push after rebase is safe in isolated PR resolution.
+**Impact:** Both fixes now in dev. Zero state corruption.
 
-## Context
+### 2026-03-07: Phase 2 Community PR Merge Process
+**By:** Keaton (Lead)
+**Status:** Completed
+**What:** Merge 3 community PRs from external contributors: PR #230 (EmmittJ - CLI wire-up), PR #217 (williamhallatt - TUI /init fix), PR #219 (williamhallatt - fork contribution docs). All showed UNSTABLE merge state but GitHub reported MERGEABLE. All merged cleanly.
+**Why:** Fork-first contributor workflow now standardized. External contributors can work in parallel with internal agents. Merge conflicts due to base drift, not code conflicts - low-friction, normal pattern.
+**Impact:** Fork contributor procedure documented in CONTRIBUTING.md (PR #219). Team ready to onboard more community contributors. 52+ tests passing across all 3 PRs.
 
-Brady requested a new sample showing an Azure Function that takes an HTTP POST prompt and dispatches work to a squad. This is the first sample demonstrating the SDK-First builder pattern integrated with a cloud hosting platform.
-
-## Decision
-
-- **Use case:** Content Review Squad — three agents (tone, technical, copy) review submitted content. Chosen for visual impact and demo clarity over alternatives (brainstorm, code review).
-- **Pattern:** Azure Functions v4 HTTP trigger → squad config via `defineSquad()` builders → mock agent handlers → JSON response. Handlers are mock/heuristic, not wired to the real Squad runtime — the point is demonstrating the SDK config pattern, not production agent execution.
-- **Config import path:** `@bradygaster/squad-sdk/builders` (subpath export). This is the canonical import for SDK-First mode.
-- **Dry-run test:** Sample includes `--dry-run` flag that validates config loading and handler execution without the Azure Functions runtime. All other samples should consider a similar zero-dependency validation path.
-
-## Impact
-
-- New sample at `samples/azure-function-squad/` — 7 files, ~200 LOC
-- `samples/README.md` updated with entry #9
-- Sets the pattern for future cloud-platform integration samples (e.g., AWS Lambda, Google Cloud Functions)
-
+### 2026-03-07: Fix: squad.agent.md excluded from TEMPLATE_MANIFEST upgrade loop
+**By:** Fenster (Core Dev)
+**PR:** #212 (Closes #195)
+**What:** squad.agent.md excluded from the TEMPLATE_MANIFEST.filter(f => f.overwriteOnUpgrade) loop in upgrade.ts. Already handled explicitly with copy + stampVersion() earlier in function.
+**Why:** Manifest loop overwrites the version-stamped file with raw template, resetting version to 0.0.0-source. Caused isAlreadyCurrent to never pass - all 30+ files re-copied on every upgrade.
+**Impact:** Any future manifest entries requiring post-copy transformation must also be excluded and handled individually.

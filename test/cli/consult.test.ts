@@ -169,10 +169,13 @@ describe('CLI: squad consult', () => {
     });
 
     it('requires personal squad to exist', () => {
-      // Override XDG_CONFIG_HOME to point to a non-existent path
+      // Override XDG_CONFIG_HOME + APPDATA to point to a non-existent path
       // This ensures the SDK won't find a personal squad
+      const nonexistent = join(TEST_ROOT, 'nonexistent-config');
       const result = runSquad('consult', TEST_ROOT, {
-        XDG_CONFIG_HOME: join(TEST_ROOT, 'nonexistent-config'),
+        XDG_CONFIG_HOME: nonexistent,
+        APPDATA: nonexistent,
+        LOCALAPPDATA: nonexistent,
       });
       expect(result.exitCode).not.toBe(0);
       expect(result.stderr).toMatch(/no personal squad/i);
@@ -182,7 +185,12 @@ describe('CLI: squad consult', () => {
   describe('happy path: init global → consult → status → extract', () => {
     const globalConfig = join(TEST_ROOT, 'xdg-config');
     const projectDir = join(TEST_ROOT, 'their-project');
-    const envWithGlobal = { XDG_CONFIG_HOME: globalConfig };
+    const envWithGlobal = {
+      XDG_CONFIG_HOME: globalConfig,
+      // On Windows, resolveGlobalSquadPath() reads APPDATA, not XDG_CONFIG_HOME
+      APPDATA: globalConfig,
+      LOCALAPPDATA: globalConfig,
+    };
 
     beforeEach(() => {
       // 1. Create a personal (global) squad via `squad init --global`
