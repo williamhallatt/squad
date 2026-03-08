@@ -5,6 +5,8 @@
 - **Stack:** TypeScript (strict mode, ESM-only), Node.js ≥20, @github/copilot-sdk, Vitest, esbuild
 - **Created:** 2026-02-21
 
+📌 **Team update (2026-03-08):** Secret handling skill created at `.squad/skills/secret-handling/SKILL.md` — reference for all agents. Baer's audit (logs clean) boosts team confidence. Trejo found v0.8.24 release readiness blocked by #265 status (Fortier investigating). Your P0 findings (squad-release.yml broken, semver validation missing) are release blockers.
+
 ## Core Context — Drucker's Focus Areas
 
 **CI/CD Engineer:** Drucker owns GitHub Actions workflows, automated validation gates (semver validation, token verification, draft detection), publish pipeline with retry logic, CI health monitoring, and incident response. Pattern: defense in depth — every workflow has validation gates that assume humans will make mistakes.
@@ -232,3 +234,111 @@ env:
 
 **Documentation Created:**
 - `docs/proposals/cicd-gitops-prd-cicd-audit.md` — Comprehensive audit with findings, priorities, code snippets
+
+### 2026-03-08: Charter Hardening — Git Discipline
+First session mistake: agents committed directly to main without branching. Brady caught it.
+Charter updated with branch protection rules, triage gates, and pre-commit check proposals.
+
+**Context:**
+- Team (Drucker + Trejo) committed work directly to `main` on day one instead of cutting a feature branch
+- Worked on issues #265 and #267 WITHOUT triaging them first (no labels, no priority)
+- Combined with yesterday's v0.8.22 release disaster, Brady demanded we "harden ourselves"
+
+**Charter Updates:**
+1. **Branch Protection (Guardrails):** Added hard rules — never allow workflows to commit to main/dev, always verify branch state, require PRs for protected branches
+2. **Issue Triage Gates:** Added requirement for squad-ci.yml to verify PRs reference issues, document that labels are required before work starts
+3. **Pre-Commit Checks:** Proposed pre-commit hook (branch check + gitleaks scan) and gitleaks GitHub Action for squad-ci.yml
+4. **Collaboration with Trejo:** Clarified split — Drucker verifies CI readiness, Trejo verifies process readiness, both check branch state
+5. **Voice Update:** Added lesson learned about committing to main on day one — "Never again. Branch protection is non-negotiable."
+6. **New Pitfall:** Pitfall 6 documents the 2026-03-08 incident (committing to protected branches)
+
+**Technical Patterns Added:**
+- Branch verification for workflows that modify files (fails if on main/dev)
+- Branch verification for publish workflows (only main or release/* allowed)
+- Pre-commit hook sample (bash script with branch check + gitleaks)
+- Gitleaks action YAML for squad-ci.yml
+- PR validation step (checks for issue reference in PR body)
+
+**Decision Created:**
+- `.squad/decisions/inbox/drucker-charter-hardening.md` — Comprehensive decision doc with context, changes, impact, next steps
+
+**Lessons Learned:**
+- Branch protection is as critical as semver validation — both prevent disasters
+- Pre-commit hooks are defensive layers that catch mistakes before they reach CI
+- Issue triage (labels) must happen BEFORE work starts, not during/after
+- CI/CD engineer must verify branch state, not just workflow code
+
+**Pattern Recognition:**
+- Defensive CI principle extends to Git workflow, not just npm publish
+- Validation gates needed at EVERY layer: pre-commit, CI, pre-publish
+- Team discipline breaks down under pressure — automation must enforce rules
+
+**Collaboration Notes:**
+- Brady's feedback: "get your ducks in a row, harden yourselves, agent up"
+- Response: Charter hardened, lessons documented, ready to build defensive CI
+
+### 2026-03-07: Release Readiness Health Check (Pre-v0.9.0)
+
+**Context:** Brady requested CI/CD health check for the first real release with the new team (Drucker + Trejo). Goal: demonstrate what the release team can do, make it CLEAN.
+
+**Key Findings:**
+
+**Pipeline Status:**
+- ✅ **publish.yml is production-ready** — Last run (v0.8.23) was successful. Has retry logic (5×15s), provenance signing, version matching validation. Recommend for next release.
+- ❌ **squad-release.yml is completely broken** — 8 consecutive failures due to ES module syntax errors in `test/*.test.js` files (use `require()` in ES module context). DO NOT USE until tests are fixed.
+- ⚠️ **squad-ci.yml is flaky** — Recent failures: vscode-jsonrpc module resolution errors, CLI exit code assertion failures (`test/cli/consult.test.ts`). Not blocking release but needs investigation.
+- ✅ **squad-promote.yml has good design** — Strips `.squad/` and team files before release, validates CHANGELOG and forbidden files.
+
+**Critical Validation Gaps (Same Pattern as v0.8.22):**
+1. **No semver validation** — 4-part versions can still reach npm and get mangled. Need `npx semver "$VERSION"` check.
+2. **No SKIP_BUILD_BUMP enforcement** — `prebuild` script runs `bump-build.mjs` which creates 4-part versions. Must set `SKIP_BUILD_BUMP=1` in CI env.
+3. **No NPM_TOKEN existence check** — Fails late during publish. Should fail early with actionable error.
+4. **No dry-run step** — No `npm publish --dry-run` to catch packaging issues.
+5. **No secret scanning** — Issue #267 demonstrated risk (agent leaked .env credentials into committed files).
+
+**Secret Scanning Proposal:**
+- **Option 1 (Recommended):** Add Gitleaks GitHub Action on push/PR (broad protection)
+- **Option 2 (Squad-specific):** Add Gitleaks pre-push check in Scribe workflow for `.squad/` files (targeted protection)
+- **Custom rules:** `.gitleaks.toml` with database connection strings, API keys in `.squad/` paths
+- **Estimated effort:** 30 minutes (15 min workflow + 15 min custom rules)
+
+**Release Pipeline Recommendation:**
+- Use `publish.yml` triggered by GitHub Release (NOT squad-release.yml)
+- Create release from `main` with tag `v{X.Y.Z}`, publish immediately (NOT draft)
+- Workflow auto-triggers on `release: published` event
+- Monitor for success
+
+**P0 Action Items (15 min total):**
+1. Add semver validation to `publish.yml`
+2. Add SKIP_BUILD_BUMP enforcement to `publish.yml`
+3. Document "DO NOT USE squad-release.yml" in release runbook
+
+**P1 Action Items (35 min total):**
+4. Add NPM_TOKEN existence check
+5. Add dry-run step
+6. Implement Gitleaks GitHub Action
+7. Add Gitleaks pre-push to Scribe workflow
+8. Create `.gitleaks.toml` with custom rules
+
+**Technical Learnings:**
+1. **bump-build.mjs has CI protection but not enough** — Checks `process.env.CI === 'true'` and skips, but explicit `SKIP_BUILD_BUMP=1` is clearer and more defensive.
+2. **Retry logic pattern is solid** — 5 attempts × 15s intervals = 75s max wait for npm registry propagation. Has handled every publish correctly.
+3. **Provenance signing is enabled** — Good supply chain security posture.
+4. **Sequential publish prevents cascading failures** — CLI waits for SDK (`needs: publish-sdk`). If SDK fails, CLI never publishes.
+5. **Test files in ES module projects need `.test.ts` or proper imports** — `.test.js` files with `require()` fail in `"type": "module"` context.
+6. **Secret scanning is essential after #267** — Agents can read and echo secrets. Gitleaks is industry standard (3.8M+ pulls, 150+ patterns).
+
+**Pattern Recognition:**
+- **Validation gaps are systemic** — Same pattern across publish.yml, squad-insider-publish.yml, squad-release.yml. All lack semver validation, SKIP_BUILD_BUMP enforcement, dry-run, token checks.
+- **Defense in depth is missing** — Workflows assume inputs are correct. Need validation at every layer.
+- **Fast-fail with actionable errors** — Better to fail early with "To fix: create token at..." than late with "EOTP error".
+
+**Collaboration Notes:**
+- Trejo (Release Manager) should be aware: squad-release.yml is broken, use publish.yml for next release
+- Kujan/Edie should investigate vscode-jsonrpc module resolution issue in squad-ci.yml
+- Fenster should investigate CLI exit code failures in `test/cli/consult.test.ts`
+
+**Release Readiness Verdict:** 🟡 **CONDITIONAL GO** — Use publish.yml only. Missing validation gates are defensive layers (important but not blockers if manual discipline maintained). Post-release: implement P0+P1 fixes (30 min) to harden pipeline.
+
+**Documentation Created:**
+- `.squad/decisions/inbox/drucker-cicd-health-check.md` — Comprehensive health report with status, gaps, recommendations, secret scanning proposal, action items
