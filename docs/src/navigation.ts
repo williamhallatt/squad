@@ -26,6 +26,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { title: 'Tips & Tricks', slug: 'guide/tips-and-tricks' },
       { title: 'Sample Prompts', slug: 'guide/sample-prompts' },
       { title: 'Personal Squad', slug: 'guide/personal-squad' },
+      { title: 'Interactive Shell', slug: 'guide/shell' },
       { title: 'Contributing', slug: 'guide/contributing' },
       { title: 'Contributors', slug: 'guide/contributors' },
     ],
@@ -73,6 +74,9 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { title: 'CLI', slug: 'reference/cli' },
       { title: 'SDK', slug: 'reference/sdk' },
+      { title: 'SDK API Reference', slug: 'reference/api-reference' },
+      { title: 'SDK Integration', slug: 'reference/integration' },
+      { title: 'Tools & Hooks', slug: 'reference/tools-and-hooks' },
       { title: 'Config', slug: 'reference/config' },
     ],
   },

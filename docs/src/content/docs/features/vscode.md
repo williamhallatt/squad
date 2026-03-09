@@ -112,9 +112,101 @@ See [Getting Started](../get-started/first-session.md) for your first VS Code se
 
 ---
 
+## Extension Developer Guide
+
+If you're building a VS Code extension that integrates with Squad, follow these patterns.
+
+### Detect Client Mode
+
+```typescript
+const isVSCodeMode = process.env.SQUAD_CLIENT === 'vscode';
+
+if (!isVSCodeMode) {
+  console.warn('SquadUI should only run in VS Code');
+  return;
+}
+```
+
+### Import SDK Safely
+
+**DO:** Import specific types and functions
+
+```typescript
+import type { CastMember, AgentCharter } from '@bradygaster/squad-sdk';
+import { loadConfig, resolveSquad } from '@bradygaster/squad-sdk';
+```
+
+**DON'T:** Import the CLI entry point — this will call `process.exit()` and crash your extension.
+
+### Load Configuration
+
+```typescript
+import { loadConfig, resolveSquad } from '@bradygaster/squad-sdk';
+
+try {
+  const squadPath = resolveSquad(workspaceRoot);
+  const config = await loadConfig(squadPath);
+  console.log('Squad loaded:', config.team.name);
+} catch (err) {
+  console.warn('Squad not found:', err.message);
+  return;
+}
+```
+
+### Spawn Agents
+
+```typescript
+import { SquadCoordinator } from '@bradygaster/squad-sdk';
+
+const coordinator = new SquadCoordinator({ teamRoot: squadPath });
+await coordinator.initialize();
+
+const decision = await coordinator.route('refactor this function');
+await coordinator.execute(decision, 'refactor this function');
+```
+
+### Stream Responses
+
+```typescript
+import { startStreaming } from '@bradygaster/squad-sdk';
+
+const stream = await startStreaming(agentResponse);
+for await (const chunk of stream) {
+  vscodePanel.append(chunk);
+}
+```
+
+### Handle Errors Gracefully
+
+```typescript
+try {
+  const result = await coordinator.route(userTask);
+} catch (err) {
+  vscode.window.showErrorMessage(`Squad error: ${err.message}`);
+}
+```
+
+Never call `process.exit()` in an extension — it crashes VS Code.
+
+### Pass Editor Context
+
+```typescript
+const editor = vscode.window.activeTextEditor;
+
+const decision = await coordinator.route(userTask, {
+  fileContent: editor.document.getText(),
+  fileName: editor.document.fileName,
+  selection: editor.selection,
+  language: editor.document.languageId,
+});
+```
+
+---
+
 ## See Also
 
 - [Getting Started](../get-started/installation.md) — Installation and setup guide
 - [Parallel Execution](parallel-execution.md) — How Squadron fan-outs agents
 - [Model Selection](model-selection.md) — Cost-first routing strategy
-- [CLI Shell Commands](../cli/shell.md) — Shell commands and features
+- [Interactive Shell](../guide/shell.md) — Shell commands and features
+- [SDK API Reference](../reference/api-reference.md) — Full SDK type and function reference
