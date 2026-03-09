@@ -1,0 +1,73 @@
+---
+import { NAV_SECTIONS, STANDALONE_PAGES } from '../navigation';
+
+interface Props {
+  currentSlug?: string;
+}
+
+const { currentSlug = '' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<aside
+  id="sidebar"
+  class="fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-surface-950 border-r border-surface-200 dark:border-surface-800 transform -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-200 ease-in-out overflow-y-auto pt-14 lg:pt-0 lg:h-[calc(100vh-3.5rem)] lg:sticky lg:top-14 lg:shrink-0"
+>
+  <div class="p-4 space-y-6">
+    {NAV_SECTIONS.map((section) => (
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-surface-600 dark:text-surface-300 mb-2 px-3">
+          {section.title}
+        </h3>
+        <ul class="space-y-0.5">
+          {section.items.map((item) => (
+            <li>
+              <a
+                href={`${base}docs/${item.slug}/`}
+                class:list={[
+                  'sidebar-link',
+                  { active: currentSlug === item.slug },
+                ]}
+              >
+                {item.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+
+    <div class="border-t border-surface-200 dark:border-surface-800 pt-4">
+      <ul class="space-y-0.5">
+        {STANDALONE_PAGES.map((page) => (
+          <li>
+            <a
+              href={`${base}docs/${page.slug}/`}
+              class:list={[
+                'sidebar-link',
+                { active: currentSlug === page.slug },
+              ]}
+            >
+              {page.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</aside>
+
+<!-- Overlay for mobile -->
+<div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 hidden lg:hidden"></div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+
+  function closeSidebar() {
+    sidebar?.classList.add('-translate-x-full');
+    overlay?.classList.add('hidden');
+  }
+
+  overlay?.addEventListener('click', closeSidebar);
+</script>

@@ -16,8 +16,9 @@
     "lint": "tsc --noEmit -p packages/squad-sdk/tsconfig.json && tsc --noEmit -p packages/squad-cli/tsconfig.json",
     "dev:link": "npm run build && cd packages/squad-sdk && npm link && cd ../squad-cli && npm link",
     "dev:unlink": "cd packages/squad-cli && npm unlink && cd ../squad-sdk && npm unlink",
-    "docs:build": "node docs/build.js",
-    "docs:preview": "cd docs/dist && npx serve ."
+    "docs:build": "cd docs && npm run build",
+    "docs:dev": "cd docs && npm run dev",
+    "docs:preview": "cd docs && npm run preview"
   },
   "engines": {
     "node": ">=20.0.0"

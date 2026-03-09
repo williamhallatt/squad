@@ -1,0 +1,29 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Sidebar from '../components/Sidebar.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  currentSlug?: string;
+}
+
+const { title, description, currentSlug } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <Header />
+  <div class="docs-layout">
+    <Sidebar currentSlug={currentSlug} />
+    <main class="flex-1 min-w-0">
+      <div class="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        <article class="prose" data-pagefind-body>
+          <slot />
+        </article>
+      </div>
+      <Footer />
+    </main>
+  </div>
+</BaseLayout>
