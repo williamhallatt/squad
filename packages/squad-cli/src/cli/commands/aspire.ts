@@ -19,6 +19,9 @@ const ASPIRE_OTLP_ENDPOINT = 'http://localhost:4317';
 /** Default Aspire dashboard UI port. */
 const ASPIRE_DASHBOARD_PORT = 18888;
 
+/** Docker container name for the Aspire dashboard. */
+const ASPIRE_CONTAINER_NAME = 'squad-aspire-dashboard';
+
 /** Docker image for the Aspire dashboard. */
 const ASPIRE_DOCKER_IMAGE = 'mcr.microsoft.com/dotnet/aspire-dashboard:latest';
 
@@ -64,6 +67,7 @@ function launchWithDocker(): ChildProcess {
   console.log(`${DIM}Starting Aspire dashboard via Docker...${RESET}`);
   const child = spawn('docker', [
     'run', '--rm',
+    '--name', ASPIRE_CONTAINER_NAME,
     '-p', `${ASPIRE_DASHBOARD_PORT}:18888`,
     '-p', '4317:18889',
     '-e', 'DASHBOARD__FRONTEND__AUTHMODE=Unsecured',

@@ -38,7 +38,7 @@ const SKIP_REASON = process.env['SKIP_DOCKER_TESTS'] === '1'
     ? 'Docker not available'
     : null;
 
-const CONTAINER_NAME = 'aspire-dashboard-test';
+const CONTAINER_NAME = 'squad-aspire-dashboard';
 const DASHBOARD_URL = 'http://localhost:18888';
 const OTLP_GRPC_TARGET = 'http://localhost:4317';
 
@@ -69,6 +69,16 @@ function removeContainer(): void {
     // container may not exist
   }
 }
+
+// Best-effort cleanup on unexpected exit (Ctrl+C, uncaught exception, etc.)
+// This prevents orphaned containers when the test runner is interrupted.
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.once(signal, () => {
+    removeContainer();
+    process.exit(128 + (signal === 'SIGINT' ? 2 : 15));
+  });
+}
+process.once('exit', () => removeContainer());
 
 // ============================================================================
 // OTel setup — NodeSDK with gRPC exporters targeting the Aspire dashboard
